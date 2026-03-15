@@ -281,11 +281,25 @@
         body.appendChild(termEl);
         overlay.classList.add('active');
 
+        // ESC 캡처 (xterm.js보다 먼저 잡기)
+        App._gcEscHandler = function(e) {
+            if (e.key === 'Escape') {
+                e.stopPropagation();
+                e.preventDefault();
+                App.closeGroupConsole();
+            }
+        };
+        document.addEventListener('keydown', App._gcEscHandler, true);
+
         // 리사이즈
         setTimeout(function() { App.safeFit(t.fitAddon); }, 50);
     };
 
     App.closeGroupConsole = function() {
+        if (App._gcEscHandler) {
+            document.removeEventListener('keydown', App._gcEscHandler, true);
+            App._gcEscHandler = null;
+        }
         var overlay = document.getElementById('gcConsoleOverlay');
         if (overlay) overlay.classList.remove('active');
 
