@@ -127,8 +127,50 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Slide 3: Usage -->
+                        <!-- Slide 3: Groups -->
                         <div class="onboarding-slide" data-slide="2">
+                            <div class="onboarding-logo">🎯</div>
+                            <h2 class="onboarding-title">Groups</h2>
+                            <p class="onboarding-desc">세션을 그룹으로 묶어 나만의 에이전트 팀을 구성하세요</p>
+                            <div class="onboarding-feature">
+                                <div class="feature-step">
+                                    <span class="feature-num">1</span>
+                                    <div class="feature-text">사이드바 <strong>Groups +</strong> 버튼으로 그룹 생성</div>
+                                </div>
+                                <div class="feature-step">
+                                    <span class="feature-num">2</span>
+                                    <div class="feature-text">세션을 추가하고 <strong>역할</strong>(프론트엔드, 백엔드 등) 지정</div>
+                                </div>
+                                <div class="feature-step">
+                                    <span class="feature-num">3</span>
+                                    <div class="feature-text"><strong>그리드 뷰</strong>로 모든 멤버 터미널을 동시에 확인</div>
+                                </div>
+                            </div>
+                            <div class="onboarding-modes">
+                                <div class="onboarding-mode-card">
+                                    <div class="mode-preview mode-preview-group-broadcast">
+                                        <div class="preview-bar" style="color:var(--accent)">📡 Broadcast</div>
+                                        <div class="preview-group-grid">
+                                            <div class="preview-group-cell"><div class="preview-group-role">FE</div></div>
+                                            <div class="preview-group-cell"><div class="preview-group-role">BE</div></div>
+                                        </div>
+                                    </div>
+                                    <span class="onboarding-label">전체 전송</span>
+                                </div>
+                                <div class="onboarding-mode-card">
+                                    <div class="mode-preview mode-preview-group-focus">
+                                        <div class="preview-bar" style="color:var(--accent)">📍 Focus</div>
+                                        <div class="preview-group-grid">
+                                            <div class="preview-group-cell focused"><div class="preview-group-role">FE</div></div>
+                                            <div class="preview-group-cell dimmed"><div class="preview-group-role">BE</div></div>
+                                        </div>
+                                    </div>
+                                    <span class="onboarding-label">개별 전송</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Slide 4: Usage -->
+                        <div class="onboarding-slide" data-slide="3">
                             <div class="onboarding-logo">📊</div>
                             <h2 class="onboarding-title">Usage</h2>
                             <p class="onboarding-desc">토큰 사용량을 실시간으로 모니터링하세요</p>
@@ -147,8 +189,8 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Slide 4: 툴바 버튼 가이드 -->
-                        <div class="onboarding-slide" data-slide="3">
+                        <!-- Slide 5: 툴바 버튼 가이드 -->
+                        <div class="onboarding-slide" data-slide="4">
                             <h2 class="onboarding-title">툴바 버튼 가이드</h2>
                             <div class="toolbar-guide">
                                 <div class="toolbar-guide-mock">
@@ -204,6 +246,7 @@
                             <span class="onboarding-dot" onclick="onboardingGo(1)"></span>
                             <span class="onboarding-dot" onclick="onboardingGo(2)"></span>
                             <span class="onboarding-dot" onclick="onboardingGo(3)"></span>
+                            <span class="onboarding-dot" onclick="onboardingGo(4)"></span>
                         </div>
                         <button class="onboarding-nav-btn" id="onboardingNext" onclick="onboardingNav(1)">→</button>
                     </div>
