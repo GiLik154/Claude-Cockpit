@@ -113,8 +113,9 @@ async def api_global_usage() -> Dict[str, Any]:
 
     result = _app._parse_usage_output(raw)
 
-    # 파싱 실패 시 다음 호출에서 세션 재생성
+    # 파싱 실패 시 세션을 완전히 재생성 (다음 호출에서)
     if "session_used" not in result and "week_used" not in result:
+        _app.kill_tmux_session(USAGE_TMUX)
         _app._usage_ready = False
 
     return result

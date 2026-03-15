@@ -225,13 +225,17 @@ def _parse_usage_output(raw: str) -> Dict[str, Any]:
 async def _usage_session_healthy() -> bool:
     if not session_exists(USAGE_TMUX):
         return False
-    raw = await _capture_tmux_pane_async(USAGE_TMUX, "-5")
+    raw = await _capture_tmux_pane_async(USAGE_TMUX, "-30")
     if not raw:
         return False
     clean = ANSI_ESCAPE.sub('', raw)
     lines = [line.strip() for line in clean.strip().split('\n') if line.strip()]
     if not lines:
         return True  # 출력 없음 = 아직 시작 중
+    # "Status dialog dismissed" 반복 → 세션 오염됨
+    dismissed_count = clean.count('Status dialog dismissed')
+    if dismissed_count >= 5:
+        return False
     last = lines[-1]
     # 쉘 프롬프트만 보이면 claude가 종료된 것으로 판단
     if (re.match(r'^.*[%\$]\s*$', last)
