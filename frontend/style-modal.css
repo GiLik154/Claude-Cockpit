@@ -300,10 +300,6 @@
 }
 
 /* 사용량 모달 */
-.usage-modal {
-    width: 420px;
-    max-width: 92vw;
-}
 .usage-content {
     background: var(--bg);
     border: 1px solid var(--border);

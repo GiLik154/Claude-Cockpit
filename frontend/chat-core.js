@@ -57,22 +57,18 @@
     App._statusTimer = null;
     App._panesAutoShown = false;
 
-    /** fitAddon.fit() 안전 호출 (터미널 미연결 시 에러 무시) */
     App.safeFit = function(addon) { try { addon.fit(); } catch (_) {} };
 
-    /** HTML 이스케이프 */
     App.esc = function(str) {
         var d = document.createElement('div');
         d.textContent = str || '';
         return d.innerHTML;
     };
 
-    /** ANSI 이스케이프 시퀀스 제거 */
     App.stripAnsi = function(str) {
         return str.replace(/\x1b\[[0-9;]*[a-zA-Z]|\x1b\].*?\x07|\x1b\[.*?[@-~]|\x1b\(B/g, '');
     };
 
-    /** 토큰 수 문자열 파싱 ("3.2k" → 3200) */
     App.parseTokenCount = function(str) {
         var num = parseFloat(str);
         if (/[kK]/.test(str)) return Math.round(num * 1000);
@@ -80,7 +76,6 @@
         return Math.round(num);
     };
 
-    /** 토큰 수 포맷팅 (1000 → "1.0k") */
     App.formatTokens = function(n) {
         if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
         if (n >= 1000) return (n / 1000).toFixed(1) + 'k';

@@ -15,19 +15,13 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from backend.constants import (  # noqa: F401
+from backend.constants import (
     ANSI_ESCAPE,
-    BASE_DIR,
     DEFAULT_SCROLLBACK_LINES,
     FRONTEND_DIR,
     LOGS_DIR,
-    MAX_CAPTURE_LINES,
-    MAX_LOG_TAIL_LINES,
     PREFIX,
     PRESET_COMMANDS,
-    PTY_POLL_INTERVAL,
-    PTY_READ_BUFFER,
-    PTY_SPAWN_TIMEOUT,
     SESSIONS_FILE,
     STORAGE_DIR,
     TMUX,
@@ -36,11 +30,8 @@ from backend.constants import (  # noqa: F401
     TMUX_DEFAULT_COLS,
     TMUX_DEFAULT_ROWS,
     TMUX_SESSION_INIT_DELAY,
-    TMUX_USAGE_COLS,
     TMUX_USAGE_SESSION_COLS,
-    USAGE_CAPTURE_DELAY,
     USAGE_CLI_STARTUP_DELAY,
-    USAGE_FIRST_READY_DELAY,
     USAGE_TMUX,
     _VALID_PANE_ID,
     _VALID_SESSION_ID,
@@ -73,11 +64,8 @@ def _validate_pane_id(pane_id: str) -> None:
 
 def _clean_env() -> Dict[str, str]:
     """CLAUDECODE/CLAUDE_CODE_ENTRY 환경변수를 제거한 사본을 반환."""
-    env = os.environ.copy()
-    for key in list(env.keys()):
-        if key.startswith("CLAUDECODE") or key.startswith("CLAUDE_CODE_ENTRY"):
-            del env[key]
-    return env
+    return {k: v for k, v in os.environ.items()
+            if not k.startswith("CLAUDECODE") and not k.startswith("CLAUDE_CODE_ENTRY")}
 
 
 # --- 로그 ---

@@ -167,9 +167,15 @@ async def api_list_panes(session_id: str) -> List[Dict[str, Any]]:
         if not line.strip():
             continue
         parts = line.split("\t")
+        if len(parts) < 2:
+            continue
+        try:
+            index = int(parts[1])
+        except ValueError:
+            continue
         panes.append({
             "pane_id": parts[0],
-            "index": int(parts[1]),
+            "index": index,
             "title": parts[2] if len(parts) > 2 else "",
             "active": parts[3] == "1" if len(parts) > 3 else False,
         })

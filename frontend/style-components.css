@@ -58,12 +58,12 @@
     font-size: 12px;
 }
 .btn-restart-all {
-    border-color: var(--warning, #e67e22);
-    color: var(--warning, #e67e22);
+    border-color: var(--warning);
+    color: var(--warning);
 }
 .btn-restart-all:hover {
-    background: rgba(230, 126, 34, 0.15);
-    border-color: var(--warning, #e67e22);
+    background: rgba(243, 156, 18, 0.15);
+    border-color: var(--warning);
 }
 
 /* 온보딩 화면 */
@@ -249,12 +249,6 @@
     width: 100%;
     text-align: left;
 }
-.onboarding-tips h4 {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text);
-    margin: 0 0 10px;
-}
 .onboarding-tips ul {
     list-style: none;
     padding: 0;
@@ -275,23 +269,12 @@
     font-weight: 600;
 }
 
-/* 온보딩 뷰 모드 프리뷰 */
 .onboarding-section-title {
     font-size: 13px;
     font-weight: 600;
     color: var(--text-dim);
     margin-bottom: 6px;
     text-align: center;
-}
-.onboarding-modes-desc {
-    font-size: 11px;
-    color: var(--text-dim);
-    text-align: center;
-    margin-bottom: 12px;
-    line-height: 1.5;
-}
-.onboarding-modes-desc strong {
-    color: var(--text);
 }
 .onboarding-modes {
     display: flex;

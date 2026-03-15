@@ -2,7 +2,6 @@
 (function() {
     var App = window.ChatApp;
 
-    /** CLI 텍스트를 구조화된 엔트리로 파싱 */
     function _parseEntries(raw) {
         var clean = App.stripAnsi(raw);
         var lines = clean.split('\n');
@@ -79,7 +78,6 @@
         return entries;
     }
 
-    /** 사용자 명령 경계 기준으로 엔트리 그룹화 */
     function _groupByCommand(entries) {
         var groups = [];
         var current = null;
@@ -99,7 +97,6 @@
         return groups;
     }
 
-    /** 명령 그룹 요약 텍스트 생성 */
     function _buildSummary(items) {
         var tools = 0, response = '';
         for (var i = 0; i < items.length; i++) {
@@ -115,7 +112,6 @@
         return parts.join(' · ') || '(작업 내용 없음)';
     }
 
-    /** 단일 엔트리를 HTML로 렌더링 */
     function _renderEntry(e) {
         switch (e.type) {
             case 'thinking':
@@ -246,7 +242,11 @@
         App.logRefreshTimer = setInterval(App.refreshLog, App.LOG_REFRESH_INTERVAL_MS);
     };
 
-    /** 명령 텍스트 기반으로 <details> 열림/닫힘 상태 저장 */
+    App._saveDetailsState = _saveDetailsState;
+    App._restoreDetailsState = _restoreDetailsState;
+    App._findVisibleAnchor = _findVisibleAnchor;
+    App._restoreScrollAnchor = _restoreScrollAnchor;
+
     function _saveDetailsState(container) {
         var state = {};
         container.querySelectorAll('details.log-command-details').forEach(function(d, idx) {
@@ -257,7 +257,6 @@
         return state;
     }
 
-    /** 명령 텍스트 기반으로 <details> 열림/닫힘 상태 복원 */
     function _restoreDetailsState(container, state) {
         if (!state || !Object.keys(state).length) return;
         container.querySelectorAll('details.log-command-details').forEach(function(d, idx) {
@@ -267,7 +266,6 @@
         });
     }
 
-    /** 현재 뷰포트에 보이는 첫 번째 명령 그룹 ID 찾기 */
     function _findVisibleAnchor(container) {
         var groups = container.querySelectorAll('.log-command-group');
         var containerTop = container.scrollTop;
@@ -279,7 +277,6 @@
         return null;
     }
 
-    /** 앵커 요소 기준으로 스크롤 복원 */
     function _restoreScrollAnchor(container, anchor) {
         if (!anchor || !anchor.id) return false;
         var el = document.getElementById(anchor.id);
@@ -373,7 +370,6 @@
         }, 50);
     };
 
-    /** ANSI 이스케이프 → HTML 변환 */
     App.ansiToHtml = function(raw) {
         var t = App.TERMINAL_THEME;
         var c8 = [t.black, t.red, t.green, t.yellow, t.blue, t.magenta, t.cyan, t.white];

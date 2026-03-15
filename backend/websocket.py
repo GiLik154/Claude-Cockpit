@@ -31,7 +31,7 @@ router = APIRouter()
 
 
 def _spawn_pty_sync(tmux_name: str) -> Tuple[int, int]:
-    """tmux 세션에 연결된 PTY를 생성 (executor에서 실행). (child_pid, pty_fd) 반환."""
+    """tmux 세션에 연결된 PTY를 생성. (child_pid, pty_fd) 반환."""
     import backend.app as _app
 
     env = _app._clean_env()
@@ -41,7 +41,10 @@ def _spawn_pty_sync(tmux_name: str) -> Tuple[int, int]:
 
     pid, fd = pty.fork()
     if pid == 0:
-        os.execvpe(TMUX, [TMUX, "attach-session", "-t", tmux_name], env)
+        try:
+            os.execvpe(TMUX, [TMUX, "attach-session", "-t", tmux_name], env)
+        except Exception:
+            os._exit(1)
 
     flag = fcntl.fcntl(fd, fcntl.F_GETFL)
     fcntl.fcntl(fd, fcntl.F_SETFL, flag | os.O_NONBLOCK)
@@ -119,17 +122,17 @@ async def ws_terminal(ws: WebSocket, session_id: str) -> None:
         while True:
             msg = await ws.receive_text()
             payload = json.loads(msg)
+            msg_type = payload.get("type")
 
-            if payload["type"] == "input":
+            if msg_type == "input":
                 try:
-                    input_data = payload["data"]
+                    input_data = payload.get("data", "")
                     _app.append_log(session_id, "in", input_data)
-                    # 리더 pane(첫 번째)이 active인지 확인 후 입력 전송
                     _app.tmux_run("select-pane", "-t", f"{tmux_name}.0")
                     os.write(fd, input_data.encode("utf-8"))
                 except OSError:
                     break
-            elif payload["type"] == "resize":
+            elif msg_type == "resize":
                 rows = payload.get("rows", int(TMUX_DEFAULT_ROWS))
                 cols = payload.get("cols", int(TMUX_DEFAULT_COLS))
                 winsize = struct.pack("HHHH", rows, cols, 0, 0)

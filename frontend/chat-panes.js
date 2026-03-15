@@ -2,7 +2,6 @@
 (function() {
     var App = window.ChatApp;
 
-    /** tmux 캡처 텍스트에서 에이전트 상태 추출 */
     App.extractStatus = function(captureText) {
         var lines = captureText.split('\n').map(function(l) {
             return l.replace(/\x1b\[[0-9;]*[a-zA-Z]|\x1b\].*?\x07|\x1b\[.*?[@-~]/g, '').trim();
@@ -53,7 +52,7 @@
             if (App.currentSession) {
                 var el = document.getElementById('term-' + App.currentSession);
                 if (el) { el.style.display = 'block'; }
-                if (App.terminals[App.currentSession]) App.terminals[App.currentSession].fitAddon.fit();
+                if (App.terminals[App.currentSession]) App.safeFit(App.terminals[App.currentSession].fitAddon);
             }
         } else {
             // both 또는 cards
@@ -230,36 +229,17 @@
                     var container = document.getElementById('logTerminal');
                     var scrollGap = container.scrollHeight - container.scrollTop - container.clientHeight;
                     var wasAtBottom = scrollGap < App.SCROLL_THRESHOLD_PX;
-                    // 스크롤 앵커: 현재 보이는 명령 그룹 기준 복원
-                    var anchor = null;
-                    if (!wasAtBottom) {
-                        var groups = container.querySelectorAll('.log-command-group');
-                        for (var gi = 0; gi < groups.length; gi++) {
-                            if (groups[gi].offsetTop + groups[gi].offsetHeight > container.scrollTop) {
-                                anchor = { id: groups[gi].id, offset: container.scrollTop - groups[gi].offsetTop };
-                                break;
-                            }
-                        }
-                    }
-                    // details 상태: 명령 텍스트 기준 저장/복원
-                    var detailsState = {};
-                    div.querySelectorAll('details.log-command-details').forEach(function(d, idx) {
-                        var userEl = d.querySelector('.log-user');
-                        var key = userEl ? userEl.textContent.trim() : ('_idx_' + idx);
-                        detailsState[key] = d.open;
-                    });
+                    var prevScrollTop = container.scrollTop;
+                    var anchor = wasAtBottom ? null : App._findVisibleAnchor(container);
+
+                    var detailsState = App._saveDetailsState(div);
                     div.innerHTML = App.parseLogToHtml(text);
-                    div.querySelectorAll('details.log-command-details').forEach(function(d, idx) {
-                        var userEl = d.querySelector('.log-user');
-                        var key = userEl ? userEl.textContent.trim() : ('_idx_' + idx);
-                        if (detailsState.hasOwnProperty(key)) d.open = detailsState[key];
-                    });
+                    App._restoreDetailsState(div, detailsState);
+
                     if (wasAtBottom) {
                         container.scrollTop = container.scrollHeight;
-                    } else if (anchor && anchor.id) {
-                        var anchorEl = document.getElementById(anchor.id);
-                        if (anchorEl) container.scrollTop = anchorEl.offsetTop + anchor.offset;
-                        else container.scrollTop = container.scrollHeight;
+                    } else if (!App._restoreScrollAnchor(container, anchor)) {
+                        container.scrollTop = prevScrollTop;
                     }
                 })
                 .catch(function() {});
