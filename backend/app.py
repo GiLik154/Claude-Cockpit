@@ -218,13 +218,13 @@ def _parse_usage_output(raw: str) -> Dict[str, Any]:
 
 # --- 전용 usage 세션 ---
 
-def _usage_session_healthy() -> bool:
+async def _usage_session_healthy() -> bool:
     if not session_exists(USAGE_TMUX):
         return False
-    out, rc = tmux_run("capture-pane", "-t", USAGE_TMUX, "-p", "-S", "-5")
-    if rc != 0:
+    raw = await _capture_tmux_pane_async(USAGE_TMUX, "-5")
+    if not raw:
         return False
-    clean = ANSI_ESCAPE.sub('', out)
+    clean = ANSI_ESCAPE.sub('', raw)
     lines = [line.strip() for line in clean.strip().split('\n') if line.strip()]
     if not lines:
         return True  # 출력 없음 = 아직 시작 중
@@ -238,10 +238,10 @@ def _usage_session_healthy() -> bool:
     return True
 
 
-def _recreate_usage_session() -> None:
+async def _recreate_usage_session() -> None:
     global _usage_ready
     kill_tmux_session(USAGE_TMUX)
-    time.sleep(TMUX_CD_DELAY)
+    await asyncio.sleep(TMUX_CD_DELAY)
     home = os.path.expanduser("~")
     tmux_run(
         "new-session", "-d",
@@ -249,20 +249,20 @@ def _recreate_usage_session() -> None:
         "-x", TMUX_USAGE_SESSION_COLS, "-y", TMUX_DEFAULT_ROWS,
         "/bin/zsh", "-l",
     )
-    time.sleep(TMUX_SESSION_INIT_DELAY)
+    await asyncio.sleep(TMUX_SESSION_INIT_DELAY)
     tmux_run("send-keys", "-t", USAGE_TMUX, f"cd {shlex.quote(home)}", "Enter")
-    time.sleep(TMUX_CD_DELAY)
+    await asyncio.sleep(TMUX_CD_DELAY)
     tmux_run("send-keys", "-t", USAGE_TMUX, "claude --dangerously-skip-permissions", "Enter")
-    time.sleep(USAGE_CLI_STARTUP_DELAY)
+    await asyncio.sleep(USAGE_CLI_STARTUP_DELAY)
     # trust 다이얼로그 수락
     tmux_run("send-keys", "-t", USAGE_TMUX, "", "Enter")
     _usage_ready = False
 
 
-def _ensure_usage_session() -> None:
-    if _usage_session_healthy():
+async def _ensure_usage_session() -> None:
+    if await _usage_session_healthy():
         return
-    _recreate_usage_session()
+    await _recreate_usage_session()
 
 
 def _resolve_preset_cmd(preset: str) -> List[str]:
