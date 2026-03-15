@@ -2,7 +2,6 @@
 (function() {
     var App = window.ChatApp;
 
-    /** 화면 상단 토스트 알림 표시 */
     App.showStatus = function(msg, isSuccess) {
         var el = document.getElementById('statusMsg');
         if (!el) {

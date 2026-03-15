@@ -28,7 +28,7 @@
             div.className = 'session-item' + (isActive ? ' active' : '');
             div.innerHTML =
                 '<div class="session-info" onclick="switchSession(\'' + s.session_id + '\')">' +
-                    '<div class="name">' + App.esc(s.name) + ' ' + (connected ? '<span style="color:#2ecc71">\u25CF</span>' : '<span style="color:#e74c3c">\u25CF</span>') + '</div>' +
+                    '<div class="name">' + App.esc(s.name) + ' ' + (connected ? '<span style="color:var(--success)">\u25CF</span>' : '<span style="color:var(--danger)">\u25CF</span>') + '</div>' +
                     '<div class="status ' + (s.alive ? 'alive' : 'dead') + '">' + (s.alive ? 'Running' : 'Stopped') + '</div>' +
                 '</div>' +
                 '<div class="session-actions">' +
@@ -43,9 +43,7 @@
         var name = document.getElementById('sessionName').value.trim() || 'Claude';
         var preset = document.getElementById('sessionPreset').value;
         var cwd = document.getElementById('sessionCwd').value.trim() || undefined;
-        var tmEl = document.getElementById('sessionTeammateMode');
         var body = { name: name, preset: preset, cwd: cwd };
-        if (tmEl && tmEl.value) body.teammate_mode = tmEl.value;
         fetch('/api/sessions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -157,8 +155,6 @@
         App.refreshUsageBadge();
         App.renderSessionsList();
         App.checkPanes();
-        App.viewMode = 'terminal';
-        App.updateViewModeBtn();
     };
 
     // index.html onclick 핸들러용 전역 노출

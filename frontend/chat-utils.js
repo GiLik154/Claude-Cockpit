@@ -1,23 +1,11 @@
-/**
- * chat-utils.js — Pure utility functions extracted for testability (ES module).
- *
- * These functions are duplicated in the IIFE-based module files (chat-core.js, etc.)
- * to keep the non-module <script> loading intact. Any logic changes should be synced
- * in both places.
- *
- * This file is NOT loaded in index.html — it exists solely for vitest imports.
- */
+// Pure utility functions extracted for testability (ES module).
+// Duplicated in IIFE modules (chat-core.js, etc.) — sync logic changes in both places.
+// NOT loaded in index.html — exists solely for vitest imports.
 
-/**
- * Strip ANSI escape sequences from a string.
- */
 export function stripAnsi(str) {
     return str.replace(/\x1b\[[0-9;]*[a-zA-Z]|\x1b\].*?\x07|\x1b\[.*?[@-~]|\x1b\(B/g, '');
 }
 
-/**
- * Parse a token count string like "3.2k" → 3200, "1.5M" → 1500000, "500" → 500.
- */
 export function parseTokenCount(str) {
     const num = parseFloat(str);
     if (/[kK]/.test(str)) return Math.round(num * 1000);
@@ -25,23 +13,15 @@ export function parseTokenCount(str) {
     return Math.round(num);
 }
 
-/**
- * Format a token number: 1000 → "1.0k", 1500000 → "1.5M", 500 → "500".
- */
 export function formatTokens(n) {
     if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
     if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
     return String(n);
 }
 
-/**
- * Parse CLI output for token usage information.
- * Returns { tokens, toolUses?, time?, status } or null.
- */
 export function parseUsageFromOutput(text) {
     const clean = stripAnsi(text);
 
-    // Pattern 1: In-progress "✢ Verb… (Xs · ↓ N tokens · ...)" or "↑N tokens"
     const progressMatch = clean.match(/[✢✳✶✽✻]\s*\S+…?\s*\(([^)]*?(\d+[\d.]*[kKmM]?)\s*tokens[^)]*)\)/);
     if (progressMatch) {
         const tokenStr = progressMatch[2];
@@ -50,7 +30,6 @@ export function parseUsageFromOutput(text) {
         return { tokens, time: timeMatch ? timeMatch[1].trim() : '', status: 'working' };
     }
 
-    // Pattern 2: Done "(N tool uses · N tokens · Xs)"
     const doneMatch = clean.match(/Done\s*\((\d+)\s*tool\s*uses?\s*·\s*([\d.]+[kKmM]?)\s*tokens?\s*·\s*([^)]+)\)/);
     if (doneMatch) {
         return {
@@ -61,7 +40,6 @@ export function parseUsageFromOutput(text) {
         };
     }
 
-    // Pattern 3: Simple done "(N tokens · Xs)"
     const simpleDone = clean.match(/Done\s*\(([\d.]+[kKmM]?)\s*tokens?\s*·\s*([^)]+)\)/);
     if (simpleDone) {
         return {
@@ -74,10 +52,6 @@ export function parseUsageFromOutput(text) {
     return null;
 }
 
-/**
- * Detect token/rate limit expiry from CLI output.
- * Returns wait seconds (>0 if detected, 0 otherwise).
- */
 export function detectTokenExpiry(text) {
     const patterns = [
         /(?:rate.?limit|token.?limit|too many requests).*?(\d+)\s*(?:second|sec|s\b|분)/i,
@@ -99,10 +73,6 @@ export function detectTokenExpiry(text) {
     return 0;
 }
 
-/**
- * Extract agent status from tmux capture text.
- * Returns { s: 'thinking'|'working'|'idle', t: string }.
- */
 export function extractStatus(captureText) {
     const lines = captureText.split('\n').map(l =>
         l.replace(/\x1b\[[0-9;]*[a-zA-Z]|\x1b\].*?\x07|\x1b\[.*?[@-~]/g, '').trim()
@@ -126,16 +96,12 @@ export function extractStatus(captureText) {
     return { s: 'idle', t: '시작 대기 중...' };
 }
 
-/**
- * HTML-escape a string. Uses DOM-based escaping in browser, manual replacement in Node/test.
- */
 export function esc(str) {
     if (typeof document !== 'undefined') {
         const d = document.createElement('div');
         d.textContent = str || '';
         return d.innerHTML;
     }
-    // Fallback for non-DOM environments (shouldn't happen with jsdom)
     return (str || '')
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
@@ -144,9 +110,6 @@ export function esc(str) {
         .replace(/'/g, '&#039;');
 }
 
-/**
- * Parse raw CLI log text into structured HTML.
- */
 export function parseLogToHtml(raw) {
     const clean = stripAnsi(raw);
     const lines = clean.split('\n');
@@ -156,10 +119,8 @@ export function parseLogToHtml(raw) {
         const line = lines[i];
         const trimmed = line.trim();
 
-        // Skip empty lines and separator lines
         if (!trimmed || /^[─━─]+/.test(trimmed) || /^▪/.test(trimmed)) { i++; continue; }
 
-        // User input: ❯ ...
         if (/^❯\s/.test(trimmed)) {
             const text = esc(trimmed.replace(/^❯\s*/, ''));
             html += `<div class="log-entry log-user"><span class="log-prompt">❯</span>${text}</div>`;
@@ -167,19 +128,16 @@ export function parseLogToHtml(raw) {
             continue;
         }
 
-        // Thinking: ✻✳✶✽✢ Verb... (time)
         if (/^[✻✳✶✽✢]/.test(trimmed)) {
             html += `<div class="log-entry log-thinking">${esc(trimmed)}</div>`;
             i++;
             continue;
         }
 
-        // Tool call: ⏺ ToolName(...) — generic pattern for all tools including MCP
         if (/^⏺\s*[\w][\w_]*(?:__[\w]+)*\s*\(/.test(trimmed)) {
             const nameMatch = trimmed.match(/^⏺\s*([\w][\w_]*(?:__[\w]+)*\s*\([^)]*\)?)/);
             const toolName = nameMatch ? nameMatch[1] : trimmed.replace(/^⏺\s*/, '');
             i++;
-            // Collect result lines (⎿ ... or indented)
             const resultLines = [];
             while (i < lines.length) {
                 const rl = lines[i];
@@ -200,7 +158,6 @@ export function parseLogToHtml(raw) {
             continue;
         }
 
-        // Claude response text: ⏺ ...
         if (/^⏺\s/.test(trimmed)) {
             const textLines = [trimmed.replace(/^⏺\s*/, '')];
             i++;
@@ -226,17 +183,14 @@ export function parseLogToHtml(raw) {
             continue;
         }
 
-        // Result lines (⎿) without a preceding tool
         if (trimmed.startsWith('⎿')) {
             html += `<div class="log-entry log-result">${esc(trimmed.replace(/^⎿\s*/, ''))}</div>`;
             i++;
             continue;
         }
 
-        // Status bar / other
         if (/bypass permissions|shift\+tab|esc to interrupt|Context left/.test(trimmed)) { i++; continue; }
 
-        // Fallback: plain text
         html += `<div class="log-entry log-text">${esc(trimmed)}</div>`;
         i++;
     }

@@ -203,7 +203,7 @@
     z-index: 2;
 }
 .live-log-container.ansi-mode {
-    background: #1a1a2e;
+    background: var(--bg);
 }
 .live-log-scroll {
     height: 100%;
@@ -223,7 +223,7 @@
     line-height: 1.35;
     white-space: pre;
     overflow-x: auto;
-    color: #e0e0e0;
+    color: var(--text);
     cursor: text;
     user-select: text;
     -webkit-user-select: text;

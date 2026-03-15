@@ -2,10 +2,6 @@
 (function() {
     var App = window.ChatApp;
 
-    /**
-     * CLI 출력에서 토큰 사용량 파싱 (진행 중 또는 완료 상태).
-     * { tokens, toolUses?, time?, status } 또는 null 반환.
-     */
     App.parseUsageFromOutput = function(text) {
         var clean = App.stripAnsi(text);
 
@@ -42,10 +38,6 @@
         return null;
     };
 
-    /**
-     * 속도/토큰 제한 감지.
-     * 대기 시간(초) 반환 (감지 시 >0, 미감지 시 0).
-     */
     App.detectTokenExpiry = function(text) {
         var patterns = [
             /(?:rate.?limit|token.?limit|too many requests).*?(\d+)\s*(?:second|sec|s\b|분)/i,
