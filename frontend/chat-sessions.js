@@ -26,11 +26,14 @@
             var wsState = entry && entry.ws ? entry.ws.readyState : null;
             var connected = wsState === WebSocket.OPEN;
             var sid = App.esc(s.session_id);
-            var dangerBadge = s.danger_mode ? ' <span class="danger-badge" title="Skip Permissions">&#9888;</span>' : '';
+            var dangerBadge = s.danger_mode ? ' <span class="danger-badge" title="⚠ Skip Permissions 모드 — Claude가 확인 없이 모든 작업을 수행합니다">&#9888;</span>' : '';
+            var connDot = connected
+                ? '<span style="color:var(--success)" title="WebSocket 연결됨">\u25CF</span>'
+                : '<span style="color:var(--danger)" title="연결 끊김 — 재연결 시도 중">\u25CF</span>';
             div.className = 'session-item' + (isActive ? ' active' : '');
             div.innerHTML =
                 '<div class="session-info" onclick="switchSession(\'' + sid + '\')">' +
-                    '<div class="name">' + App.esc(s.name) + dangerBadge + ' ' + (connected ? '<span style="color:var(--success)">\u25CF</span>' : '<span style="color:var(--danger)">\u25CF</span>') + '</div>' +
+                    '<div class="name">' + App.esc(s.name) + dangerBadge + ' ' + connDot + '</div>' +
                     '<div class="status ' + (s.alive ? 'alive' : 'dead') + '">' + (s.alive ? 'Running' : 'Stopped') + '</div>' +
                 '</div>' +
                 '<div class="session-actions">' +

@@ -4,15 +4,17 @@
     padding: 10px 16px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 10px;
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
     z-index: 10;
 }
+.header-left { flex: 1; }
 .header-left {
     display: flex;
     align-items: center;
     gap: 10px;
+    min-width: 0;
 }
 .header h1 {
     font-size: 16px;
