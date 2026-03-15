@@ -19,6 +19,9 @@
     App.HEALTH_CHECK_TIMEOUT_MS = 5000;
     App.PANE_SCAN_LINES = 20;
     App.STATUS_MSG_TRUNCATE = 50;
+    App.RECONNECT_MAX_INTERVAL_MS = 30000;
+
+    App.isMobile = ('ontouchstart' in window) || navigator.maxTouchPoints > 0 || window.innerWidth < App.MOBILE_BREAKPOINT_PX;
 
     App.DEFAULT_PLACEHOLDER = App.isMobile ? 'Enter 두 번 = 전송' : 'Enter=전송, Shift+Enter=개행 (Alt+1~9 세션전환)';
     App.FONT_FAMILY = "'SF Mono', 'Menlo', 'Consolas', monospace";
@@ -32,8 +35,6 @@
         cyan: '#1abc9c', white: '#ecf0f1',
     };
     App.AGENT_AVATARS = ['\u{1F9D1}\u200D\u{1F4BC}', '\u{1F468}\u200D\u{1F4BB}', '\u{1F469}\u200D\u{1F4BB}', '\u{1F9D1}\u200D\u{1F3A8}', '\u{1F527}', '\u{1F4CA}', '\u{1F9EA}', '\u{1F4DD}'];
-
-    App.isMobile = ('ontouchstart' in window) || navigator.maxTouchPoints > 0 || window.innerWidth < App.MOBILE_BREAKPOINT_PX;
 
     App.terminals = {};
     App.currentSession = null;
