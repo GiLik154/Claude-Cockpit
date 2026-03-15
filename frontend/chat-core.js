@@ -50,6 +50,8 @@
     App.tokenRetryCountdown = null;
     App.lastSentInput = null;
     App.sessionUsage = {};
+    App.groups = {};
+    App.currentGroup = null;
 
     // 동시 fetch 방지 플래그
     App._refreshLogRunning = false;

@@ -19,8 +19,16 @@
         if (App.isComposing) return;
         var field = document.getElementById('inputField');
         var text = field.value.replace(/\n+$/, '');
-        if (!App.currentSession || !App.terminals[App.currentSession]) { App.showStatus('세션을 먼저 선택하세요'); return; }
         if (!text) { field.value = ''; App.autoResizeField(); return; }
+
+        // 그룹 broadcast 모드
+        if (App.currentGroup) {
+            App.broadcastToGroup(text);
+            field.value = ''; App.autoResizeField(); field.focus();
+            return;
+        }
+
+        if (!App.currentSession || !App.terminals[App.currentSession]) { App.showStatus('세션을 먼저 선택하세요'); return; }
         var t = App.terminals[App.currentSession];
         if (!t.ws || t.ws.readyState !== WebSocket.OPEN) {
             App.pendingInput = { sessionId: App.currentSession, text: text };

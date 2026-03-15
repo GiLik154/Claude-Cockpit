@@ -160,7 +160,18 @@
 
     App.updateSendButton = function() {
         var btn = document.querySelector('.input-bar .send-btn');
+        var bar = document.getElementById('inputBar');
         if (!btn) return;
+
+        // 그룹 모드
+        if (App.currentGroup) {
+            btn.disabled = false;
+            btn.textContent = 'Broadcast';
+            if (bar) bar.classList.add('broadcast-mode');
+            return;
+        }
+        if (bar) bar.classList.remove('broadcast-mode');
+
         var t = App.terminals[App.currentSession];
         if (t && t.ws && t.ws.readyState === WebSocket.OPEN) {
             btn.disabled = false; btn.textContent = 'Send';
@@ -184,6 +195,7 @@
         if (App.viewMode !== 'terminal') { App.exitLiveView(); App.viewMode = 'terminal'; App.updateViewModeBtn(); }
         App.setPanesOff();
         App.cleanupPanes();
+        if (App.currentGroup) App.exitGroupView();
         Object.keys(App.terminals).forEach(function(sid) {
             var el = document.getElementById('term-' + sid);
             if (el) el.style.display = 'none';
@@ -192,6 +204,7 @@
         document.getElementById('emptyState').style.display = 'flex';
         document.getElementById('inputBar').style.display = 'none';
         App.renderSessionsList();
+        App.renderGroupsList();
         App.refreshUsageBadge();
     };
 
