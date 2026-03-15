@@ -28,11 +28,7 @@
             var wsState = entry && entry.ws ? entry.ws.readyState : null;
             var connected = wsState === WebSocket.OPEN;
             var sid = App.esc(s.session_id);
-            var presetIcons = { 'both': '👥⚡', 'agent-teams': '👥', 'skip-permissions': '⚡', 'default': '' };
-            var presetTitles = { 'both': 'Agent Teams + Skip Permissions', 'agent-teams': 'Agent Teams', 'skip-permissions': 'Skip Permissions', 'default': 'Default' };
             var preset = s.preset || 'default';
-            var presetIcon = presetIcons[preset] || '';
-            var presetBadge = presetIcon ? ' <span class="preset-icon" title="' + App.esc(presetTitles[preset]) + '">' + presetIcon + '</span>' : '';
             var dangerBadge = s.danger_mode ? ' <span class="danger-badge" title="⚠ Skip Permissions 모드 — Claude가 확인 없이 모든 작업을 수행합니다">&#9888;</span>' : '';
             var model = s.model || 'auto';
             var modelBadge = '';
@@ -45,7 +41,7 @@
             div.className = 'session-item' + (isActive ? ' active' : '');
             div.innerHTML =
                 '<div class="session-info" onclick="switchSession(\'' + sid + '\')">' +
-                    '<div class="name">' + App.esc(s.name) + presetBadge + modelBadge + dangerBadge + ' ' + connDot + '</div>' +
+                    '<div class="name">' + App.esc(s.name) + modelBadge + dangerBadge + ' ' + connDot + '</div>' +
                     '<div class="status ' + (s.alive ? 'alive' : 'dead') + '">' + (s.alive ? 'Running' : 'Stopped') + '</div>' +
                 '</div>' +
                 '<div class="session-actions">' +
