@@ -53,6 +53,8 @@
 
     // --- 그룹 뷰 전환 ---
 
+    App.groupFocusedSession = null; // 그룹 내 포커스된 세션 (null = broadcast 모드)
+
     App.switchToGroup = function(groupId) {
         var group = App.groups[groupId];
         if (!group) return;
@@ -71,6 +73,7 @@
 
         App.currentSession = null;
         App.currentGroup = groupId;
+        App.groupFocusedSession = null;
 
         document.getElementById('emptyState').style.display = 'none';
         document.getElementById('inputBar').style.display = 'flex';
@@ -102,11 +105,16 @@
                 '<span class="group-cell-role">' + App.esc(m.role || 'Agent') + '</span>' +
                 '<span class="group-cell-name">' + App.esc(m.name) + '</span>' +
                 (m.alive ? '<span style="color:var(--success)">\u25CF</span>' : '<span style="color:var(--danger)">\u25CF</span>');
-            // 셀 헤더 클릭 → 해당 세션으로 전환 (개별 모드)
-            header.addEventListener('click', function() {
-                App.exitGroupView();
-                App.switchSession(m.session_id);
-            });
+            // 셀 헤더 클릭 → 포커스 토글 (개별 전송 모드)
+            (function(sid, role, name) {
+                header.addEventListener('click', function() {
+                    if (App.groupFocusedSession === sid) {
+                        App.unfocusGroupCell();
+                    } else {
+                        App.focusGroupCell(sid, role || name);
+                    }
+                });
+            })(m.session_id, m.role, m.name);
             cell.appendChild(header);
 
             var termWrap = document.createElement('div');
@@ -130,11 +138,51 @@
         area.appendChild(grid);
 
         // placeholder, 버튼 업데이트
-        var field = document.getElementById('inputField');
-        if (field) field.placeholder = '\uBE0C\uB85C\uB4DC\uCE90\uC2A4\uD2B8: \uADF8\uB8F9 \uC804\uCCB4\uC5D0 \uC804\uC1A1 (' + memberCount + '\uBA85)';
+        App._updateGroupPlaceholder();
         App.updateSendButton();
         App.renderGroupsList();
         App.renderSessionsList();
+    };
+
+    // --- 셀 포커스 (개별 전송) ---
+
+    App.focusGroupCell = function(sessionId, label) {
+        App.groupFocusedSession = sessionId;
+        // 셀 하이라이트
+        document.querySelectorAll('.group-grid-cell').forEach(function(cell) {
+            cell.classList.toggle('focused', cell.getAttribute('data-session-id') === sessionId);
+        });
+        App._updateGroupPlaceholder();
+        App.updateSendButton();
+        var field = document.getElementById('inputField');
+        if (field && !App.isMobile) field.focus();
+    };
+
+    App.unfocusGroupCell = function() {
+        App.groupFocusedSession = null;
+        document.querySelectorAll('.group-grid-cell.focused').forEach(function(cell) {
+            cell.classList.remove('focused');
+        });
+        App._updateGroupPlaceholder();
+        App.updateSendButton();
+    };
+
+    App._updateGroupPlaceholder = function() {
+        var field = document.getElementById('inputField');
+        if (!field || !App.currentGroup) return;
+        var group = App.groups[App.currentGroup];
+        if (!group) return;
+
+        if (App.groupFocusedSession) {
+            // 포커스된 멤버의 역할/이름 찾기
+            var label = App.groupFocusedSession;
+            group.members.forEach(function(m) {
+                if (m.session_id === App.groupFocusedSession) label = m.role || m.name;
+            });
+            field.placeholder = '\u{1F4CD} ' + label + '\uC5D0\uAC8C\uB9CC \uC804\uC1A1 (\uD5E4\uB354 \uD074\uB9AD\uC73C\uB85C \uD574\uC81C)';
+        } else {
+            field.placeholder = '\uBE0C\uB85C\uB4DC\uCE90\uC2A4\uD2B8: \uADF8\uB8F9 \uC804\uCCB4\uC5D0 \uC804\uC1A1 (' + group.members.length + '\uBA85)';
+        }
     };
 
     // 그리드 셀 안에 터미널 생성 (기존 createTerminal 변형)
@@ -197,6 +245,7 @@
 
     App.exitGroupView = function() {
         App.currentGroup = null;
+        App.groupFocusedSession = null;
         var grid = document.getElementById('groupGrid');
         if (grid) {
             // 터미널을 원래 terminalArea로 복귀
@@ -213,10 +262,24 @@
         App.renderGroupsList();
     };
 
-    // --- Broadcast ---
+    // --- Broadcast / 개별 전송 ---
 
     App.broadcastToGroup = function(text) {
         if (!App.currentGroup) return;
+
+        // 포커스 모드: 해당 세션에만 WebSocket으로 전송
+        if (App.groupFocusedSession) {
+            var t = App.terminals[App.groupFocusedSession];
+            if (t && t.ws && t.ws.readyState === WebSocket.OPEN) {
+                t.ws.send(JSON.stringify({ type: 'input', data: text + '\r' }));
+                App.showStatus('\uC804\uC1A1\uB428', true);
+            } else {
+                App.showStatus('\uC138\uC158\uC774 \uC5F0\uACB0\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4');
+            }
+            return;
+        }
+
+        // broadcast 모드: API로 전체 전송
         fetch('/api/groups/' + App.currentGroup + '/broadcast', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
