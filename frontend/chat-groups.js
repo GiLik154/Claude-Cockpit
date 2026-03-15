@@ -79,10 +79,20 @@
         document.getElementById('inputBar').style.display = 'flex';
         if (App.isMobile) document.getElementById('sidebar').classList.add('collapsed');
 
+        // 기존 채팅 모드 정리
+        App.cleanupGroupChat();
+
         // 그룹 그리드 생성
         var area = document.getElementById('terminalArea');
         var grid = document.getElementById('groupGrid');
-        if (grid) grid.remove();
+        if (grid) {
+            // 터미널을 먼저 꺼내서 보존한 뒤 그리드 제거
+            grid.querySelectorAll('.terminal-container').forEach(function(termEl) {
+                termEl.style.display = 'none';
+                area.appendChild(termEl);
+            });
+            grid.remove();
+        }
 
         grid = document.createElement('div');
         grid.id = 'groupGrid';
