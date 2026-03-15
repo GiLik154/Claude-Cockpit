@@ -19,13 +19,13 @@
         if (App.isComposing) return;
         var field = document.getElementById('inputField');
         var text = field.value.replace(/\n+$/, '');
-        if (!App.currentSession || !App.terminals[App.currentSession]) { App.showStatus('No session selected'); return; }
+        if (!App.currentSession || !App.terminals[App.currentSession]) { App.showStatus('세션을 먼저 선택하세요'); return; }
         if (!text) { field.value = ''; App.autoResizeField(); return; }
         var t = App.terminals[App.currentSession];
         if (!t.ws || t.ws.readyState !== WebSocket.OPEN) {
             App.pendingInput = { sessionId: App.currentSession, text: text };
             field.value = ''; App.autoResizeField();
-            App.showStatus('Queued - sending when connected...');
+            App.showStatus('대기 중 — 연결되면 전송됩니다');
             return;
         }
         App.lastSentInput = text;
