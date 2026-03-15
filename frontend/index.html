@@ -8,14 +8,14 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Claude Web Console</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.min.css" integrity="sha384-tStR1zLfWgsiXCF3IgfB3lBa8KmBe/lG287CL9WCeKgQYcp1bjb4/+mwN6oti4Co" crossorigin="anonymous">
-    <link rel="stylesheet" href="/static/style.css?v=5">
-    <link rel="stylesheet" href="/static/style-layout.css?v=5">
-    <link rel="stylesheet" href="/static/style-sidebar.css?v=5">
-    <link rel="stylesheet" href="/static/style-terminal.css?v=5">
-    <link rel="stylesheet" href="/static/style-modal.css?v=5">
-    <link rel="stylesheet" href="/static/style-input.css?v=5">
-    <link rel="stylesheet" href="/static/style-components.css?v=5">
-    <link rel="stylesheet" href="/static/style-responsive.css?v=5">
+    <link rel="stylesheet" href="/static/style.css?v=6">
+    <link rel="stylesheet" href="/static/style-layout.css?v=6">
+    <link rel="stylesheet" href="/static/style-sidebar.css?v=6">
+    <link rel="stylesheet" href="/static/style-terminal.css?v=6">
+    <link rel="stylesheet" href="/static/style-modal.css?v=6">
+    <link rel="stylesheet" href="/static/style-input.css?v=6">
+    <link rel="stylesheet" href="/static/style-components.css?v=6">
+    <link rel="stylesheet" href="/static/style-responsive.css?v=6">
 </head>
 <body>
     <header class="header" role="banner">
@@ -268,6 +268,13 @@
                 <strong>&#9888; Skip Permissions 모드</strong>
                 <p>Claude가 확인 없이 파일 수정, 명령어 실행 등 모든 작업을 수행합니다. 신뢰할 수 있는 환경에서만 사용하세요.</p>
             </div>
+            <label for="sessionModel">Model</label>
+            <select id="sessionModel">
+                <option value="auto" selected>Auto (기본)</option>
+                <option value="opus">Opus</option>
+                <option value="sonnet">Sonnet</option>
+                <option value="haiku">Haiku</option>
+            </select>
             <label for="sessionCwd">Working Directory</label>
             <input type="text" id="sessionCwd" placeholder="/path/to/your/project">
             <div class="modal-actions">
@@ -281,14 +288,14 @@
     <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.min.js" integrity="sha384-XGqKrV8Jrukp1NITJbOEHwg01tNkuXr6uB6YEj69ebpYU3v7FvoGgEg23C1Gcehk" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-web-links@0.11.0/lib/addon-web-links.min.js" integrity="sha384-S1biLeI8L/bFduIVvCxbn/l4EtaG4nTqQjGF7qCYTbsGXGFe8KgIKXtw4+UWxprv" crossorigin="anonymous"></script>
     <!-- 앱 모듈: 로드 순서 중요 (core → features → sessions/terminal → init) -->
-    <script src="/static/chat-core.js?v=5"></script>
-    <script src="/static/chat-ui.js?v=5"></script>
-    <script src="/static/chat-log.js?v=5"></script>
-    <script src="/static/chat-usage.js?v=5"></script>
-    <script src="/static/chat-input.js?v=5"></script>
-    <script src="/static/chat-panes.js?v=5"></script>
-    <script src="/static/chat-sessions.js?v=5"></script>
-    <script src="/static/chat-terminal.js?v=5"></script>
-    <script src="/static/chat.js?v=5"></script>
+    <script src="/static/chat-core.js?v=6"></script>
+    <script src="/static/chat-ui.js?v=6"></script>
+    <script src="/static/chat-log.js?v=6"></script>
+    <script src="/static/chat-usage.js?v=6"></script>
+    <script src="/static/chat-input.js?v=6"></script>
+    <script src="/static/chat-panes.js?v=6"></script>
+    <script src="/static/chat-sessions.js?v=6"></script>
+    <script src="/static/chat-terminal.js?v=6"></script>
+    <script src="/static/chat.js?v=6"></script>
 </body>
 </html>

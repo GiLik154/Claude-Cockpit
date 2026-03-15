@@ -84,6 +84,7 @@
     App.openNewSession = function() {
         document.getElementById('sessionName').value = '';
         document.getElementById('sessionCwd').value = '';
+        document.getElementById('sessionModel').value = 'auto';
         document.getElementById('newSessionModal').classList.add('active');
         App.onPresetChange();
     };

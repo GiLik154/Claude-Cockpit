@@ -61,6 +61,14 @@ ANSI_ESCAPE: re.Pattern[str] = re.compile(
     r'\x1b\[[0-9;]*[a-zA-Z]|\x1b\].*?\x07|\x1b\[.*?[@-~]|\r'
 )
 
+# 모델 옵션 (CLI --model 플래그 값)
+MODEL_OPTIONS: Dict[str, str] = {
+    "auto": "",           # --model 없이 기본 모델 사용
+    "opus": "opus",
+    "sonnet": "sonnet",
+    "haiku": "haiku",
+}
+
 # 프리셋 명령어 매핑
 PRESET_COMMANDS: Dict[str, List[str]] = {
     "skip-permissions": ["claude", "--dangerously-skip-permissions"],

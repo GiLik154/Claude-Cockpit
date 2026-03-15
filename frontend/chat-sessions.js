@@ -19,6 +19,8 @@
     App.renderSessions = function(sessions) {
         var list = document.getElementById('sessionList');
         list.innerHTML = '';
+        var modelLabels = { 'opus': 'Opus', 'sonnet': 'Sonnet', 'haiku': 'Haiku' };
+        var modelColors = { 'opus': '#c084fc', 'sonnet': '#60a5fa', 'haiku': '#34d399' };
         sessions.forEach(function(s) {
             var div = document.createElement('div');
             var isActive = App.currentSession === s.session_id;
@@ -32,13 +34,18 @@
             var presetIcon = presetIcons[preset] || '';
             var presetBadge = presetIcon ? ' <span class="preset-icon" title="' + App.esc(presetTitles[preset]) + '">' + presetIcon + '</span>' : '';
             var dangerBadge = s.danger_mode ? ' <span class="danger-badge" title="⚠ Skip Permissions 모드 — Claude가 확인 없이 모든 작업을 수행합니다">&#9888;</span>' : '';
+            var model = s.model || 'auto';
+            var modelBadge = '';
+            if (model !== 'auto' && modelLabels[model]) {
+                modelBadge = ' <span class="model-badge" style="color:' + modelColors[model] + '" title="Model: ' + modelLabels[model] + '">' + modelLabels[model] + '</span>';
+            }
             var connDot = connected
                 ? '<span style="color:var(--success)" title="WebSocket 연결됨">\u25CF</span>'
                 : '<span style="color:var(--danger)" title="연결 끊김 — 재연결 시도 중">\u25CF</span>';
             div.className = 'session-item' + (isActive ? ' active' : '');
             div.innerHTML =
                 '<div class="session-info" onclick="switchSession(\'' + sid + '\')">' +
-                    '<div class="name">' + App.esc(s.name) + presetBadge + dangerBadge + ' ' + connDot + '</div>' +
+                    '<div class="name">' + App.esc(s.name) + presetBadge + modelBadge + dangerBadge + ' ' + connDot + '</div>' +
                     '<div class="status ' + (s.alive ? 'alive' : 'dead') + '">' + (s.alive ? 'Running' : 'Stopped') + '</div>' +
                 '</div>' +
                 '<div class="session-actions">' +
@@ -52,8 +59,9 @@
     App.createSession = function() {
         var name = document.getElementById('sessionName').value.trim() || 'Claude';
         var preset = document.getElementById('sessionPreset').value;
+        var model = document.getElementById('sessionModel').value;
         var cwd = document.getElementById('sessionCwd').value.trim() || undefined;
-        var body = { name: name, preset: preset, cwd: cwd };
+        var body = { name: name, preset: preset, model: model, cwd: cwd };
         fetch('/api/sessions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
