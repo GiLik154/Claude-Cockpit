@@ -55,14 +55,10 @@
                 '<div class="gc-name">' + App.esc(mem.role) + '</div>' +
                 '<div class="gc-status"><span class="gc-dot idle" id="gc-dot-' + m.session_id + '"></span><span id="gc-stxt-' + m.session_id + '">대기</span></div>';
 
-            // 클릭 시 포커스
+            // 클릭 시 콘솔 모달 열기
             (function(sid, role) {
                 card.addEventListener('click', function() {
-                    if (App.groupFocusedSession === sid) {
-                        App.unfocusGroupCell();
-                    } else {
-                        App.focusGroupCell(sid, role);
-                    }
+                    App.openGroupSessionLog(sid, role);
                 });
             })(m.session_id, m.role);
 
@@ -244,5 +240,95 @@
         if (header) header.remove();
     };
 
+    // 그룹 세션 콘솔 모달 열기 (로그 뷰어 재활용)
+    App.openGroupSessionLog = function(sessionId, role) {
+        App._groupLogSessionId = sessionId;
+        clearInterval(App.logRefreshTimer);
+        document.getElementById('copyModal').classList.add('active');
+
+        // 모달 제목 변경
+        var titleEl = document.querySelector('#copyModal .modal-header-row h3');
+        if (titleEl) titleEl.textContent = (role || 'Session') + ' Console';
+
+        // 입력 행 표시
+        var inputRow = document.getElementById('paneInputRow');
+        if (inputRow) {
+            inputRow.style.display = 'flex';
+            document.getElementById('paneInputField').value = '';
+        }
+
+        App.lastLogHash = '';
+        var div = App.initLogDiv();
+        div.innerHTML = '';
+
+        var refresh = function() {
+            if (!App._groupLogSessionId) return;
+            fetch('/api/sessions/' + App._groupLogSessionId + '/capture?lines=2000')
+                .then(function(res) { return res.ok ? res.text() : ''; })
+                .then(function(text) {
+                    var hash = text.length + ':' + text.slice(-300);
+                    if (hash === App.lastLogHash) return;
+                    App.lastLogHash = hash;
+                    var container = document.getElementById('logTerminal');
+                    var scrollGap = container.scrollHeight - container.scrollTop - container.clientHeight;
+                    var wasAtBottom = scrollGap < App.SCROLL_THRESHOLD_PX;
+                    var prevScrollTop = container.scrollTop;
+
+                    var detailsState = App._saveDetailsState(div);
+                    div.innerHTML = App.parseLogToHtml(text);
+                    App._restoreDetailsState(div, detailsState);
+
+                    if (wasAtBottom) {
+                        container.scrollTop = container.scrollHeight;
+                    } else {
+                        container.scrollTop = prevScrollTop;
+                    }
+                })
+                .catch(function() {});
+        };
+
+        refresh();
+        App.logRefreshTimer = setInterval(refresh, App.LOG_REFRESH_INTERVAL_MS);
+
+        // pane 입력을 이 세션으로 리다이렉트
+        App._viewingPaneId = null; // pane이 아니라 세션 전체
+        App._groupLogSendOverride = function() {
+            var field = document.getElementById('paneInputField');
+            var text = field.value.trim();
+            if (!text) return;
+            var t = App.terminals[sessionId];
+            if (t && t.ws && t.ws.readyState === WebSocket.OPEN) {
+                t.ws.send(JSON.stringify({ type: 'input', data: text + '\r' }));
+                field.value = '';
+                App.showStatus('전송됨', true);
+            } else {
+                App.showStatus('세션이 연결되지 않았습니다');
+            }
+        };
+    };
+
+    // sendPaneCommand 오버라이드: 그룹 로그 모드일 때 직접 전송
+    var _origSendPaneCommand = App.sendPaneCommand;
+    App.sendPaneCommand = function() {
+        if (App._groupLogSendOverride) {
+            App._groupLogSendOverride();
+            return;
+        }
+        _origSendPaneCommand();
+    };
+
+    // closeCopyModal 확장: 그룹 로그 상태 정리
+    var _origCloseCopyModal = App.closeCopyModal;
+    App.closeCopyModal = function() {
+        App._groupLogSessionId = null;
+        App._groupLogSendOverride = null;
+        // 제목 복원
+        var titleEl = document.querySelector('#copyModal .modal-header-row h3');
+        if (titleEl) titleEl.textContent = 'Terminal Log';
+        _origCloseCopyModal();
+    };
+    window.closeCopyModal = App.closeCopyModal;
+
     window.toggleGroupViewMode = App.toggleGroupViewMode;
 })();
+
