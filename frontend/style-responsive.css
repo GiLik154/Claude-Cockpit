@@ -172,7 +172,7 @@
     .onboarding-icon { font-size: 22px; }
     .onboarding-hint { display: none; }
     .onboarding-tips { padding: 14px 16px; }
-    .onboarding-carousel { min-height: 240px; }
+    .onboarding-carousel { height: 400px; min-height: 240px; }
     .onboarding-modes { flex-direction: column; gap: 8px; }
     .onboarding-mode-card { flex-direction: row; gap: 10px; }
     .mode-preview { width: 120px; min-width: 120px; height: 80px; }

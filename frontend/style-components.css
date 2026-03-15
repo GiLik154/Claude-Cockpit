@@ -86,7 +86,7 @@
 .onboarding-carousel {
     width: 100%;
     position: relative;
-    height: 480px;
+    height: 540px;
     overflow: hidden;
 }
 .onboarding-slide {
@@ -96,6 +96,9 @@
     animation: slideFadeIn 0.3s ease;
     position: absolute;
     inset: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
 }
 .onboarding-slide.active {
     display: flex;

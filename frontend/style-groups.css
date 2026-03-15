@@ -272,17 +272,22 @@
 }
 
 /* --- 온보딩 그룹 프리뷰 --- */
+.mode-preview.mode-preview-group-broadcast,
+.mode-preview.mode-preview-group-focus {
+    height: 140px;
+}
 .mode-preview-group-broadcast,
 .mode-preview-group-focus {
     display: flex;
     flex-direction: column;
+    height: 100%;
 }
 .preview-group-grid {
     flex: 1;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 4px;
-    padding: 8px;
+    padding: 6px;
     background: var(--bg);
 }
 .preview-group-cell {
@@ -292,7 +297,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 60px;
+    min-height: 40px;
     transition: border-color 0.2s, opacity 0.2s;
 }
 .preview-group-cell.focused {
