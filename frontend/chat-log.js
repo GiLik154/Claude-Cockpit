@@ -454,8 +454,9 @@
     App._refreshLiveLogRunning = false;
 
     var VIEW_MODES = ['terminal', 'log', 'ansi'];
-    var VIEW_LABELS = { terminal: '📋', log: '🖥️', ansi: '📺' };
-    var VIEW_TITLES = { terminal: 'Log 모드', log: 'ANSI 모드', ansi: 'Terminal 모드' };
+    var VIEW_LABELS = { terminal: '🖥️', log: '📋', ansi: '📺' };
+    var VIEW_TITLES = { terminal: '정리된 로그', log: '원본 ANSI', ansi: '실시간 터미널' };
+    var VIEW_CURRENT = { terminal: '터미널', log: '로그', ansi: 'ANSI' };
 
     App.toggleViewMode = function() {
         var idx = VIEW_MODES.indexOf(App.viewMode);
@@ -473,8 +474,8 @@
     App.updateViewModeBtn = function() {
         var btn = document.getElementById('viewModeBtn');
         if (!btn) return;
-        btn.textContent = VIEW_LABELS[App.viewMode];
-        btn.title = VIEW_TITLES[App.viewMode] + '로 전환';
+        btn.textContent = VIEW_LABELS[App.viewMode] + (App.viewMode !== 'terminal' ? ' ' + VIEW_CURRENT[App.viewMode] : '');
+        btn.title = VIEW_TITLES[App.viewMode] + '로 전환 (클릭)';
         if (App.viewMode === 'terminal') btn.classList.remove('active');
         else btn.classList.add('active');
     };
