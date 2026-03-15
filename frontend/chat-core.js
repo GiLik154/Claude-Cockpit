@@ -52,6 +52,11 @@
     App.sessionUsage = {};
     App.groups = {};
     App.currentGroup = null;
+    App.groupViewMode = 'grid'; // 'grid' | 'chat'
+    App.CHAT_POLL_INTERVAL_MS = 2000;
+    App._groupChatTimer = null;
+    App._refreshGroupChatRunning = false;
+    App._groupChatState = null;
 
     // 동시 fetch 방지 플래그
     App._refreshLogRunning = false;
