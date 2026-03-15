@@ -79,24 +79,29 @@
     App.connectWS = function(sessionId) {
         var entry = App.terminals[sessionId];
         if (!entry) return;
+        clearTimeout(entry.reconnectTimer);
         if (entry.ws) { entry.ws.onclose = null; entry.ws.close(); }
+        entry._reconnectDelay = App.RECONNECT_INTERVAL_MS;
 
         var wsProto = location.protocol === 'https:' ? 'wss://' : 'ws://';
         var ws = new WebSocket(wsProto + location.host + '/ws/terminal/' + sessionId);
         entry.ws = ws;
 
         ws.onopen = function() {
+            entry._reconnectDelay = App.RECONNECT_INTERVAL_MS;
             App.showConnectionOverlay(sessionId, false);
             if (App.currentSession === sessionId) App.showStatus('연결됨', true);
             App.updateSendButton();
             App.flushPendingInput();
             setTimeout(function() {
+                if (ws.readyState !== WebSocket.OPEN) return;
                 entry.fitAddon.fit();
                 ws.send(JSON.stringify({ type: 'resize', rows: entry.term.rows, cols: entry.term.cols }));
             }, App.FIT_DELAY_MS);
         };
         ws.onmessage = function(event) {
-            var p = JSON.parse(event.data);
+            var p;
+            try { p = JSON.parse(event.data); } catch (_) { return; }
             if (p.type === 'output') {
                 entry.term.write(p.data);
                 var usage = App.parseUsageFromOutput(p.data);
@@ -105,7 +110,6 @@
                 if (waitSecs > 0 && sessionId === App.currentSession) {
                     App.startTokenRetry(waitSecs);
                 }
-                // WebSocket 출력 시 라이브 뷰 갱신 트리거 (디바운스)
                 if (App.viewMode !== 'terminal' && sessionId === App.currentSession) {
                     App.scheduleLiveRefresh();
                 }
@@ -116,9 +120,11 @@
         ws.onclose = function() {
             App.showConnectionOverlay(sessionId, true);
             App.updateSendButton();
+            var delay = entry._reconnectDelay || App.RECONNECT_INTERVAL_MS;
             entry.reconnectTimer = setTimeout(function() {
                 if (App.terminals[sessionId]) App.connectWS(sessionId);
-            }, App.RECONNECT_INTERVAL_MS);
+            }, delay);
+            entry._reconnectDelay = Math.min(delay * 1.5, App.RECONNECT_MAX_INTERVAL_MS);
         };
     };
 })();
