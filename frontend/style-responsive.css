@@ -1,0 +1,208 @@
+/* 반응형 미디어 쿼리 */
+
+/* 데스크톱 (>= 768px) */
+@media (min-width: 768px) {
+    .sidebar {
+        position: relative !important;
+        transform: none !important;
+    }
+    .sidebar-overlay { display: none !important; }
+    .sidebar-close { display: none; }
+
+    /* 세션 액션 버튼: 호버 시에만 표시 */
+    .session-item .session-actions {
+        opacity: 0.4;
+        transition: opacity var(--transition-fast);
+    }
+    .session-item:hover .session-actions {
+        opacity: 1;
+    }
+    .session-item.active .session-actions {
+        opacity: 1;
+    }
+
+    .input-bar .restart-btn {
+        margin-left: auto;
+    }
+}
+
+/* 모바일 (< 768px) */
+@media (max-width: 767px) {
+    .header {
+        padding: 8px 12px;
+    }
+    .header h1 { font-size: 15px; }
+    .sidebar-toggle {
+        padding: 8px 12px;
+        font-size: 20px;
+    }
+    .header .btn-sm {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+
+    .sidebar-resize { display: none; }
+
+    .sidebar {
+        width: 300px !important;
+        min-width: 300px;
+        box-shadow: var(--shadow-lg);
+    }
+    .sidebar-header {
+        padding: 16px;
+    }
+    .sidebar-close {
+        padding: 8px 12px;
+        font-size: 26px;
+    }
+
+    /* 터치 영역 확대 */
+    .session-list {
+        padding: 8px 10px;
+    }
+    .session-item {
+        padding: 14px;
+        margin-bottom: 6px;
+        min-height: 52px;
+    }
+    .session-item .name {
+        font-size: 14px;
+    }
+    .session-item .status {
+        font-size: 11px;
+        margin-top: 4px;
+    }
+    .session-item .restart-btn,
+    .session-item .delete-btn {
+        font-size: 20px;
+        padding: 6px 10px;
+        min-width: 40px;
+        min-height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .session-actions {
+        gap: 4px;
+    }
+
+    /* 입력바: 모바일 2줄 레이아웃 */
+    .input-bar {
+        padding: 6px 10px;
+        padding-bottom: max(6px, env(safe-area-inset-bottom, 6px));
+    }
+    .toolbar-row {
+        gap: 4px;
+        width: 100%;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding-bottom: 2px;
+    }
+    .toolbar-row::-webkit-scrollbar { display: none; }
+    .input-row {
+        gap: 6px;
+        width: 100%;
+    }
+    .input-bar textarea {
+        font-size: 16px; /* iOS 줌 방지 */
+        padding: 10px 12px;
+        min-height: 44px;
+        border-radius: var(--radius-md);
+        flex: 1;
+    }
+    .input-bar .cancel-btn {
+        height: 36px;
+        min-width: 36px;
+        padding: 0 10px;
+        font-size: 13px;
+    }
+    .input-bar .tool-btn {
+        height: 36px;
+        min-width: 36px;
+        padding: 0 8px;
+        font-size: 11px;
+    }
+    .input-bar .num-btn {
+        min-width: 32px;
+        font-size: 14px;
+    }
+    .input-bar .esc-btn {
+        font-size: 10px;
+    }
+    .input-bar .send-btn {
+        height: 44px;
+        padding: 0 16px;
+        font-size: 14px;
+        min-width: 60px;
+    }
+
+    /* 로그 모달: 모바일 전체화면 */
+    .copy-modal {
+        width: 100vw;
+        max-width: 100vw;
+        max-height: 100vh;
+        max-height: 100dvh;
+        height: 100vh;
+        height: 100dvh;
+        border-radius: 0;
+        border: none;
+        padding: 16px;
+        padding-top: max(16px, env(safe-area-inset-top, 16px));
+        padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
+    }
+    .modal-header-row {
+        margin-bottom: 14px;
+    }
+    .modal-header-row .btn-sm {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+    .onboarding-cards {
+        flex-direction: column;
+        gap: 8px;
+    }
+    .onboarding-card {
+        flex-direction: row;
+        padding: 14px 16px;
+        gap: 12px;
+        text-align: left;
+    }
+    .onboarding-icon { font-size: 22px; }
+    .onboarding-hint { display: none; }
+    .onboarding-tips { padding: 14px 16px; }
+    .onboarding-carousel { min-height: 240px; }
+    .onboarding-modes { flex-direction: column; gap: 8px; }
+    .onboarding-mode-card { flex-direction: row; gap: 10px; }
+    .mode-preview { width: 120px; min-width: 120px; height: 80px; }
+    .feature-step { padding: 10px 14px; }
+    .onboarding-nav-btn { width: 32px; height: 32px; font-size: 14px; }
+
+    .live-log-container.ansi-mode .log-content {
+        font-size: 10px;
+        line-height: 1.3;
+        -webkit-text-size-adjust: none;
+    }
+    .live-log-scroll {
+        padding: 8px;
+    }
+
+    .modal {
+        max-width: 96vw;
+        padding: 20px 18px;
+    }
+    .modal input, .modal select, .modal textarea {
+        padding: 12px 14px;
+        font-size: 16px; /* iOS 줌 방지 */
+    }
+    .modal-actions {
+        gap: 10px;
+    }
+    .modal-actions .btn {
+        flex: 1;
+        padding: 12px 16px;
+        font-size: 14px;
+        text-align: center;
+    }
+}

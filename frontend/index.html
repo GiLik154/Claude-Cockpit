@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#16213e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Claude Web Console</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.min.css">
+    <link rel="stylesheet" href="/static/style.css?v=1">
+    <link rel="stylesheet" href="/static/style-layout.css?v=1">
+    <link rel="stylesheet" href="/static/style-sidebar.css?v=1">
+    <link rel="stylesheet" href="/static/style-terminal.css?v=1">
+    <link rel="stylesheet" href="/static/style-modal.css?v=1">
+    <link rel="stylesheet" href="/static/style-input.css?v=1">
+    <link rel="stylesheet" href="/static/style-components.css?v=1">
+    <link rel="stylesheet" href="/static/style-responsive.css?v=1">
+</head>
+<body>
+    <header class="header" role="banner">
+        <div class="header-left">
+            <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">&#9776;</button>
+            <h1 onclick="goHome()" style="cursor:pointer">Claude Cockpit</h1>
+        </div>
+        <button class="usage-badge" id="usageBadge" onclick="fetchUsage()" title="Click to refresh usage" aria-label="View usage">Usage</button>
+        <button class="btn btn-sm btn-restart-all" onclick="restartAllSessions()" title="모든 세션 재시작" aria-label="Restart all sessions">↻ All</button>
+        <button class="btn btn-primary btn-sm" onclick="openNewSession()" aria-label="Create new session">+ New</button>
+    </header>
+
+    <main class="main">
+        <nav class="sidebar collapsed" id="sidebar" aria-label="Session list">
+            <div class="sidebar-header">
+                <h2>Sessions</h2>
+                <button class="sidebar-close" onclick="toggleSidebar()" aria-label="Close sidebar">&times;</button>
+            </div>
+            <div class="session-list" id="sessionList" role="list"></div>
+            <div class="sidebar-resize" id="sidebarResize" role="separator" aria-orientation="vertical"></div>
+        </nav>
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        <section class="terminal-area" id="terminalArea" aria-label="Terminal">
+            <div class="empty-state" id="emptyState">
+                <div class="onboarding">
+                    <div class="onboarding-carousel" id="onboardingCarousel">
+                        <!-- Slide 1: 시작하기 -->
+                        <div class="onboarding-slide active" data-slide="0">
+                            <div class="onboarding-logo">🤖</div>
+                            <h2 class="onboarding-title">Claude Cockpit</h2>
+                            <p class="onboarding-desc">Claude CLI 세션을 브라우저에서 관리하세요</p>
+                            <div class="onboarding-cards">
+                                <div class="onboarding-card" onclick="openNewSession()">
+                                    <span class="onboarding-icon">➕</span>
+                                    <span class="onboarding-label">새 세션</span>
+                                    <span class="onboarding-hint">Claude CLI 세션 생성</span>
+                                </div>
+                                <div class="onboarding-card" onclick="toggleSidebar()">
+                                    <span class="onboarding-icon">📋</span>
+                                    <span class="onboarding-label">세션 목록</span>
+                                    <span class="onboarding-hint">기존 세션 선택</span>
+                                </div>
+                                <div class="onboarding-card" onclick="fetchUsage()">
+                                    <span class="onboarding-icon">📊</span>
+                                    <span class="onboarding-label">사용량</span>
+                                    <span class="onboarding-hint">토큰 사용량 확인</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Slide 2: Agent Teams -->
+                        <div class="onboarding-slide" data-slide="1">
+                            <div class="onboarding-logo">👥</div>
+                            <h2 class="onboarding-title">Agent Teams</h2>
+                            <p class="onboarding-desc">여러 에이전트에게 동시에 작업을 분배하세요</p>
+                            <div class="onboarding-feature">
+                                <div class="feature-step">
+                                    <span class="feature-num">1</span>
+                                    <div class="feature-text"><strong>Agent Team</strong> 버튼을 눌러 작업 요청</div>
+                                </div>
+                                <div class="feature-step">
+                                    <span class="feature-num">2</span>
+                                    <div class="feature-text">리더가 팀을 구성하고 작업을 분배</div>
+                                </div>
+                                <div class="feature-step">
+                                    <span class="feature-num">3</span>
+                                    <div class="feature-text">각 에이전트가 <strong>병렬로</strong> 작업 수행</div>
+                                </div>
+                                <div class="feature-step">
+                                    <span class="feature-num">4</span>
+                                    <div class="feature-text">카드 <strong>클릭</strong>으로 로그 확인 & 명령 전송</div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Slide 3: Panes 뷰 모드 -->
+                        <div class="onboarding-slide" data-slide="2">
+                            <div class="onboarding-section-title">🖥️ Panes 뷰 모드</div>
+                            <p class="onboarding-desc">Panes 버튼 클릭으로 뷰를 전환합니다</p>
+                            <div class="onboarding-modes">
+                                <div class="onboarding-mode-card">
+                                    <div class="mode-preview mode-preview-terminal">
+                                        <div class="preview-bar">Terminal</div>
+                                        <div class="preview-lines"><span style="color:#4f8cff">❯</span> 리팩토링해줘<br><span style="color:#2ecc71">⏺</span> Running 3 agents...<br><span style="color:#8892a4">⎿ Agent team created</span></div>
+                                    </div>
+                                    <span class="onboarding-label">Off (기본)</span>
+                                    <span class="onboarding-hint">리더 터미널만</span>
+                                </div>
+                                <div class="onboarding-mode-card">
+                                    <div class="mode-preview mode-preview-split">
+                                        <div class="preview-terminal-half">
+                                            <div class="preview-bar">👑 Leader</div>
+                                            <div class="preview-lines"><span style="color:#4f8cff">❯</span> task<br><span style="color:#2ecc71">⏺</span> ...</div>
+                                        </div>
+                                        <div class="preview-cards-half">
+                                            <div class="preview-agent">🧑‍💼</div>
+                                            <div class="preview-agent">👨‍💻</div>
+                                            <div class="preview-agent">👩‍💻</div>
+                                        </div>
+                                    </div>
+                                    <span class="onboarding-label">Split</span>
+                                    <span class="onboarding-hint">터미널 + 카드</span>
+                                </div>
+                                <div class="onboarding-mode-card">
+                                    <div class="mode-preview mode-preview-cards">
+                                        <div class="preview-agent-full">👑🧑‍💼<br><span>Leader</span></div>
+                                        <div class="preview-agent-full">👨‍💻<br><span>A1</span></div>
+                                        <div class="preview-agent-full">👩‍💻<br><span>A2</span></div>
+                                    </div>
+                                    <span class="onboarding-label">Cards</span>
+                                    <span class="onboarding-hint">카드만 전체화면</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Slide 4: 입력 & 단축키 -->
+                        <div class="onboarding-slide" data-slide="3">
+                            <div class="onboarding-logo">⌨️</div>
+                            <h2 class="onboarding-title">입력 & 기능</h2>
+                            <div class="onboarding-tips">
+                                <ul>
+                                    <li>데스크톱: <strong>Enter</strong>=전송, <strong>Shift+Enter</strong>=개행</li>
+                                    <li>모바일: <strong>Enter 두 번</strong>=전송</li>
+                                    <li><strong>ESC</strong> 버튼으로 Claude 작업 중단</li>
+                                    <li><strong>1, 2, 3</strong> 버튼으로 선택지 빠르게 응답</li>
+                                    <li>📋 버튼으로 <strong>Log / ANSI 뷰</strong> 전환</li>
+                                    <li>로그에서 <strong>파란 명령어 클릭</strong>으로 접기/펼치기</li>
+                                    <li><strong>Usage</strong> 뱃지 클릭으로 토큰 사용량 확인</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 캐러셀 네비게이션 -->
+                    <div class="onboarding-nav">
+                        <button class="onboarding-nav-btn" id="onboardingPrev" onclick="onboardingNav(-1)">←</button>
+                        <div class="onboarding-dots" id="onboardingDots">
+                            <span class="onboarding-dot active" onclick="onboardingGo(0)"></span>
+                            <span class="onboarding-dot" onclick="onboardingGo(1)"></span>
+                            <span class="onboarding-dot" onclick="onboardingGo(2)"></span>
+                            <span class="onboarding-dot" onclick="onboardingGo(3)"></span>
+                        </div>
+                        <button class="onboarding-nav-btn" id="onboardingNext" onclick="onboardingNav(1)">→</button>
+                    </div>
+                </div>
+            </div>
+            <div class="live-log-container" id="liveLogContainer" style="display:none">
+                <div class="live-log-scroll">
+                    <div class="log-content" id="liveLogContent"></div>
+                </div>
+            </div>
+            <div class="panes-grid" id="panesGrid" style="display:none"></div>
+        </section>
+    </main>
+
+    <div class="input-bar" id="inputBar" style="display:none" role="toolbar" aria-label="Session controls">
+        <div class="toolbar-row">
+            <button class="cancel-btn" onclick="sendCancel()" title="Cancel (Ctrl+C)" aria-label="Cancel">&#x2715;</button>
+            <button class="tool-btn esc-btn" onclick="sendEsc()" title="ESC" aria-label="ESC">ESC</button>
+            <button class="tool-btn num-btn" onclick="sendNumber('1')" title="Select 1" aria-label="1">1</button>
+            <button class="tool-btn num-btn" onclick="sendNumber('2')" title="Select 2" aria-label="2">2</button>
+            <button class="tool-btn num-btn" onclick="sendNumber('3')" title="Select 3" aria-label="3">3</button>
+            <button class="tool-btn del-btn" onclick="sendDelete()" title="Delete" aria-label="Delete">&#x232b;</button>
+            <button class="tool-btn" onclick="viewLog()" title="View Log" aria-label="View log">Log</button>
+            <button class="tool-btn" id="viewModeBtn" onclick="toggleViewMode()" title="화면 모드 전환" aria-label="View mode">📋</button>
+            <button class="tool-btn team-btn" onclick="openTeamModal()" title="Agent Team" aria-label="Agent Team">Team</button>
+            <button class="tool-btn" id="panesBtn" onclick="togglePanesView()" title="Agent Panes" aria-label="Panes" style="display:none">Panes</button>
+            <button class="tool-btn" onclick="clearTerminal()" title="화면 지우기" aria-label="Clear">Clear</button>
+            <button class="tool-btn restart-btn" onclick="restartCurrent()" title="Restart session" aria-label="Restart">&#x21bb;</button>
+        </div>
+        <div class="input-row">
+            <textarea id="inputField" rows="1" placeholder="Enter=전송, Shift+Enter=개행"
+                autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" readonly
+                aria-label="Message input"></textarea>
+            <button class="send-btn" onclick="doSend()" aria-label="Send message">Send</button>
+        </div>
+    </div>
+    <div id="tokenRetryBar" class="token-retry-bar" style="display:none" role="status" aria-live="polite">
+        <span id="tokenRetryMsg">Token refreshing...</span>
+        <button class="btn btn-sm" onclick="cancelTokenRetry()">Cancel</button>
+    </div>
+
+    <div class="modal-overlay" id="copyModal" role="dialog" aria-modal="true" aria-label="Terminal Log">
+        <div class="modal copy-modal">
+            <div class="modal-header-row">
+                <h3>Terminal Log</h3>
+                <div>
+                    <button class="btn btn-sm" id="logIndexBtn" onclick="toggleLogIndex()" style="display:none" title="명령어 목록">☰ 목록</button>
+                    <button class="btn btn-primary btn-sm" onclick="doCopyClipboard()">Copy</button>
+                    <button class="btn btn-sm" onclick="closeCopyModal()">Close</button>
+                </div>
+            </div>
+            <div class="log-index-dropdown" id="logIndexDropdown">
+                <div class="log-index-list"></div>
+            </div>
+            <div id="logTerminal" class="log-terminal"></div>
+            <div class="pane-input-row" id="paneInputRow" style="display:none">
+                <input type="text" id="paneInputField" placeholder="이 에이전트에게 명령 전송..."
+                    onkeydown="if(event.key==='Enter'){event.preventDefault();sendPaneCommand();}">
+                <button class="btn btn-primary btn-sm" onclick="sendPaneCommand()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="usageModal" role="dialog" aria-modal="true" aria-label="Usage">
+        <div class="modal usage-modal">
+            <div class="modal-header-row">
+                <h3>Claude Usage</h3>
+                <div>
+                    <button class="btn btn-primary btn-sm" onclick="fetchUsageDetail()">Refresh</button>
+                    <button class="btn btn-sm" onclick="closeUsageModal()">Close</button>
+                </div>
+            </div>
+            <div class="usage-content" id="usageContent">
+                <div class="usage-loading">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="teamModal" role="dialog" aria-modal="true" aria-label="Agent Team Request">
+        <div class="modal">
+            <h3>Agent Team Request</h3>
+            <label for="teamTask">Task</label>
+            <textarea id="teamTask" rows="4" placeholder="e.g. 프론트엔드와 백엔드를 동시에 리팩토링해줘"></textarea>
+            <label for="teamCount">Team Size</label>
+            <select id="teamCount">
+                <option value="">Auto</option>
+                <option value="2">2</option>
+                <option value="3" selected>3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeTeamModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="sendTeamRequest()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="newSessionModal" role="dialog" aria-modal="true" aria-label="New Claude Session">
+        <div class="modal">
+            <h3>New Claude Session</h3>
+            <label for="sessionName">Name</label>
+            <input type="text" id="sessionName" placeholder="e.g. Coding Agent">
+            <label for="sessionPreset">Mode</label>
+            <select id="sessionPreset">
+                <option value="both">Agent Teams + Skip Permissions</option>
+                <option value="agent-teams">Agent Teams Only</option>
+                <option value="skip-permissions">Skip Permissions Only</option>
+                <option value="default">Default</option>
+            </select>
+            <label for="sessionCwd">Working Directory</label>
+            <input type="text" id="sessionCwd" placeholder="/path/to/your/project">
+            <div class="modal-actions">
+                <button class="btn" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="createSession()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/lib/xterm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-web-links@0.11.0/lib/addon-web-links.min.js"></script>
+    <!-- 앱 모듈: 로드 순서 중요 (core → features → sessions/terminal → init) -->
+    <script src="/static/chat-core.js?v=1"></script>
+    <script src="/static/chat-ui.js?v=1"></script>
+    <script src="/static/chat-log.js?v=1"></script>
+    <script src="/static/chat-usage.js?v=1"></script>
+    <script src="/static/chat-input.js?v=1"></script>
+    <script src="/static/chat-panes.js?v=1"></script>
+    <script src="/static/chat-sessions.js?v=1"></script>
+    <script src="/static/chat-terminal.js?v=1"></script>
+    <script src="/static/chat.js?v=1"></script>
+</body>
+</html>

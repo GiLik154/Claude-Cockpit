@@ -1,0 +1,40 @@
+/* CSS 변수, 리셋, 기본 스타일 */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --bg: #1a1a2e;
+    --bg-secondary: #16213e;
+    --bg-card: #1f2940;
+    --bg-hover: #253350;
+    --text: #e0e0e0;
+    --text-dim: #8892a4;
+    --accent: #4f8cff;
+    --accent-hover: #3a6fd8;
+    --accent-active: #2e5bb8;
+    --border: #2a3650;
+    --border-light: #344466;
+    --danger: #e74c3c;
+    --danger-hover: #c0392b;
+    --danger-active: #a93226;
+    --warning: #f39c12;
+    --success: #2ecc71;
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+    --status-alive-active: #a0ffc0;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.25s ease;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    overscroll-behavior: contain;
+}

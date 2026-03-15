@@ -1,0 +1,311 @@
+"""FastAPI 백엔드 진입점. 헬퍼 함수들을 정의하고 서브모듈 라우터를 포함한다."""
+
+import asyncio
+import json
+import logging
+import os
+import re
+import shlex
+import subprocess
+import time
+from datetime import datetime
+from typing import Any, Dict, List, Tuple
+
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
+from backend.constants import (  # noqa: F401
+    ANSI_ESCAPE,
+    BASE_DIR,
+    DEFAULT_SCROLLBACK_LINES,
+    FRONTEND_DIR,
+    LOGS_DIR,
+    MAX_CAPTURE_LINES,
+    MAX_LOG_TAIL_LINES,
+    PREFIX,
+    PRESET_COMMANDS,
+    PTY_POLL_INTERVAL,
+    PTY_READ_BUFFER,
+    PTY_SPAWN_TIMEOUT,
+    SESSIONS_FILE,
+    STORAGE_DIR,
+    TMUX,
+    TMUX_CAPTURE_TIMEOUT,
+    TMUX_CD_DELAY,
+    TMUX_DEFAULT_COLS,
+    TMUX_DEFAULT_ROWS,
+    TMUX_SESSION_INIT_DELAY,
+    TMUX_USAGE_COLS,
+    TMUX_USAGE_SESSION_COLS,
+    USAGE_CAPTURE_DELAY,
+    USAGE_CLI_STARTUP_DELAY,
+    USAGE_FIRST_READY_DELAY,
+    USAGE_TMUX,
+    _VALID_PANE_ID,
+    _VALID_SESSION_ID,
+)
+
+# 전용 usage 세션 초기화 여부
+_usage_ready: bool = False
+
+logger = logging.getLogger(__name__)
+
+app = FastAPI(title="Claude Web Console")
+
+
+# --- 유효성 검사 ---
+
+def _validate_session_id(session_id: str) -> None:
+    if not _VALID_SESSION_ID.match(session_id):
+        raise HTTPException(status_code=400, detail="Invalid session ID")
+
+
+def _validate_pane_id(pane_id: str) -> None:
+    if not _VALID_PANE_ID.match(pane_id):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid pane ID format (expected %%<number>)",
+        )
+
+
+# --- 환경변수 ---
+
+def _clean_env() -> Dict[str, str]:
+    """CLAUDECODE/CLAUDE_CODE_ENTRY 환경변수를 제거한 사본을 반환."""
+    env = os.environ.copy()
+    for key in list(env.keys()):
+        if key.startswith("CLAUDECODE") or key.startswith("CLAUDE_CODE_ENTRY"):
+            del env[key]
+    return env
+
+
+# --- 로그 ---
+
+def get_log_path(session_id: str) -> str:
+    os.makedirs(LOGS_DIR, exist_ok=True)
+    return os.path.join(LOGS_DIR, f"session_{session_id}.log")
+
+
+def append_log(session_id: str, direction: str, text: str) -> None:
+    path = get_log_path(session_id)
+    clean = ANSI_ESCAPE.sub('', text)
+    if not clean.strip():
+        return
+    ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    prefix = ">>> " if direction == "in" else ""
+    with open(path, "a", encoding="utf-8") as f:
+        f.write(f"[{ts}] {prefix}{clean}")
+        if not clean.endswith('\n'):
+            f.write('\n')
+
+
+# --- tmux 헬퍼 ---
+
+def tmux_run(*args: str) -> Tuple[str, int]:
+    result = subprocess.run(
+        [TMUX] + list(args),
+        capture_output=True,
+        text=True,
+        env=_clean_env(),
+    )
+    return result.stdout.strip(), result.returncode
+
+
+def list_tmux_sessions() -> List[str]:
+    out, rc = tmux_run("list-sessions", "-F", "#{session_name}")
+    if rc != 0:
+        return []
+    return [s for s in out.split("\n") if s.startswith(PREFIX)]
+
+
+def session_exists(session_name: str) -> bool:
+    _, rc = tmux_run("has-session", "-t", session_name)
+    return rc == 0
+
+
+def create_tmux_session(session_name: str, cmd: List[str], cwd: str) -> None:
+    tmux_run(
+        "new-session", "-d",
+        "-s", session_name,
+        "-x", TMUX_DEFAULT_COLS, "-y", TMUX_DEFAULT_ROWS,
+        "/bin/zsh", "-l",
+    )
+    time.sleep(TMUX_SESSION_INIT_DELAY)
+    tmux_run("send-keys", "-t", session_name, f"cd {shlex.quote(cwd)}", "Enter")
+    time.sleep(TMUX_CD_DELAY)
+    full_cmd = " ".join(cmd)
+    tmux_run("send-keys", "-t", session_name, full_cmd, "Enter")
+
+
+def kill_tmux_session(session_name: str) -> None:
+    tmux_run("kill-session", "-t", session_name)
+
+
+# --- 세션 메타데이터 ---
+
+def load_session_meta() -> Dict[str, Any]:
+    if os.path.exists(SESSIONS_FILE):
+        with open(SESSIONS_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+
+def save_session_meta(meta: Dict[str, Any]) -> None:
+    os.makedirs(STORAGE_DIR, exist_ok=True)
+    with open(SESSIONS_FILE, "w") as f:
+        json.dump(meta, f, indent=2, ensure_ascii=False)
+
+
+# --- tmux 캡처 (비동기) ---
+
+async def _capture_tmux_pane_async(
+    target: str,
+    start_line: str = "-500",
+    *,
+    escape_sequences: bool = False,
+    join_lines: bool = False,
+) -> str:
+    try:
+        cmd: List[str] = [TMUX, "capture-pane", "-t", target, "-p", "-S", start_line]
+        if escape_sequences:
+            cmd.insert(4, "-e")
+        if join_lines:
+            cmd.append("-J")
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            env=_clean_env(),
+        )
+        stdout, _ = await asyncio.wait_for(
+            proc.communicate(), timeout=TMUX_CAPTURE_TIMEOUT,
+        )
+        return stdout.decode("utf-8", errors="replace") if proc.returncode == 0 else ""
+    except Exception:
+        return ""
+
+
+async def _capture_tmux_history_async(
+    tmux_name: str,
+    lines: int = DEFAULT_SCROLLBACK_LINES,
+    escape_sequences: bool = False,
+) -> str:
+    return await _capture_tmux_pane_async(
+        tmux_name,
+        f"-{lines}",
+        escape_sequences=escape_sequences,
+    )
+
+
+# --- Usage 출력 파서 ---
+
+def _parse_usage_output(raw: str) -> Dict[str, Any]:
+    clean = ANSI_ESCAPE.sub('', raw)
+    result: Dict[str, Any] = {}
+
+    session_m = re.search(r'Current session.*?(\d+)%\s*used', clean, re.DOTALL)
+    if session_m:
+        result["session_used"] = int(session_m.group(1))
+
+    week_m = re.search(r'Current week \(all models\).*?(\d+)%\s*used', clean, re.DOTALL)
+    if week_m:
+        result["week_used"] = int(week_m.group(1))
+
+    sonnet_m = re.search(r'Current week \(Sonnet only\).*?(\d+)%\s*used', clean, re.DOTALL)
+    if sonnet_m:
+        result["sonnet_used"] = int(sonnet_m.group(1))
+
+    reset_m = re.search(r'Resets\s+(.+?)(?:\n|$)', clean)
+    if reset_m:
+        result["resets"] = reset_m.group(1).strip()
+
+    result["raw"] = clean.strip()
+    return result
+
+
+# --- 전용 usage 세션 ---
+
+def _usage_session_healthy() -> bool:
+    if not session_exists(USAGE_TMUX):
+        return False
+    out, rc = tmux_run("capture-pane", "-t", USAGE_TMUX, "-p", "-S", "-5")
+    if rc != 0:
+        return False
+    clean = ANSI_ESCAPE.sub('', out)
+    lines = [line.strip() for line in clean.strip().split('\n') if line.strip()]
+    if not lines:
+        return True  # 출력 없음 = 아직 시작 중
+    last = lines[-1]
+    # 쉘 프롬프트만 보이면 claude가 종료된 것으로 판단
+    if (re.match(r'^.*[%\$]\s*$', last)
+            and '❯' not in clean
+            and '/usage' not in clean
+            and 'Context left' not in clean):
+        return False
+    return True
+
+
+def _recreate_usage_session() -> None:
+    global _usage_ready
+    kill_tmux_session(USAGE_TMUX)
+    time.sleep(TMUX_CD_DELAY)
+    home = os.path.expanduser("~")
+    tmux_run(
+        "new-session", "-d",
+        "-s", USAGE_TMUX,
+        "-x", TMUX_USAGE_SESSION_COLS, "-y", TMUX_DEFAULT_ROWS,
+        "/bin/zsh", "-l",
+    )
+    time.sleep(TMUX_SESSION_INIT_DELAY)
+    tmux_run("send-keys", "-t", USAGE_TMUX, f"cd {shlex.quote(home)}", "Enter")
+    time.sleep(TMUX_CD_DELAY)
+    tmux_run("send-keys", "-t", USAGE_TMUX, "claude --dangerously-skip-permissions", "Enter")
+    time.sleep(USAGE_CLI_STARTUP_DELAY)
+    # trust 다이얼로그 수락
+    tmux_run("send-keys", "-t", USAGE_TMUX, "", "Enter")
+    _usage_ready = False
+
+
+def _ensure_usage_session() -> None:
+    if _usage_session_healthy():
+        return
+    _recreate_usage_session()
+
+
+def _resolve_preset_cmd(preset: str) -> List[str]:
+    return list(PRESET_COMMANDS.get(preset, PRESET_COMMANDS["default"]))
+
+
+# --- API 라우트 ---
+
+@app.get("/api/health")
+async def api_health() -> Dict[str, Any]:
+    alive = list_tmux_sessions()
+    usage_alive = session_exists(USAGE_TMUX)
+    return {
+        "status": "ok",
+        "tmux_sessions": len(alive),
+        "usage_session": "alive" if usage_alive else "none",
+        "uptime": time.monotonic(),
+    }
+
+
+# 서브모듈 라우터 포함 — 위의 헬퍼들이 모두 정의된 후에 import해야 함
+from backend.sessions import router as _sessions_router  # noqa: E402
+from backend.log import router as _log_router  # noqa: E402
+from backend.usage import router as _usage_router  # noqa: E402
+from backend.websocket import router as _ws_router  # noqa: E402
+
+app.include_router(_sessions_router)
+app.include_router(_log_router)
+app.include_router(_usage_router)
+app.include_router(_ws_router)
+
+# 정적 파일 & 인덱스 페이지
+app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="frontend")
+
+
+@app.get("/")
+async def serve_index() -> FileResponse:
+    return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))

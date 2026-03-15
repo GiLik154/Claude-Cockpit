@@ -1,0 +1,204 @@
+/* 입력바, 툴바, 전송 버튼 */
+.input-bar {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 12px;
+    gap: 6px;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+}
+.toolbar-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.input-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+}
+.input-bar textarea {
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: 'SF Mono', 'Menlo', monospace;
+    -webkit-appearance: none;
+    resize: none;
+    min-height: 42px;
+    max-height: 120px;
+    line-height: 1.4;
+    overflow-y: auto;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.input-bar textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(79, 140, 255, 0.15);
+}
+.input-bar textarea::placeholder {
+    color: var(--text-dim);
+    opacity: 0.7;
+}
+
+.input-bar .cancel-btn {
+    background: var(--danger);
+    border: none;
+    border-radius: var(--radius-md);
+    color: #fff;
+    padding: 0 14px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+    height: 42px;
+    transition: background var(--transition-fast), transform var(--transition-fast);
+    -webkit-tap-highlight-color: transparent;
+}
+.input-bar .cancel-btn:hover {
+    background: var(--danger-hover);
+}
+.input-bar .cancel-btn:active {
+    background: var(--danger-active);
+    transform: scale(0.96);
+}
+
+.input-bar .tool-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-dim);
+    padding: 0 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+    height: 42px;
+    transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+    -webkit-tap-highlight-color: transparent;
+}
+.input-bar .tool-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text);
+    border-color: var(--border-light);
+}
+.input-bar .tool-btn:active {
+    background: var(--bg-card);
+    transform: scale(0.96);
+}
+.input-bar .tool-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+
+.input-bar .esc-btn {
+    background: #5a3e7a;
+    border-color: #6b4d8a;
+    color: #ddd;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 0 10px;
+}
+.input-bar .esc-btn:hover {
+    background: #6b4d8a;
+    color: #fff;
+}
+.input-bar .esc-btn:active {
+    background: #4a2e6a;
+}
+
+.input-bar .num-btn {
+    font-size: 14px;
+    font-weight: 700;
+    min-width: 36px;
+    padding: 0 8px;
+    text-align: center;
+    background: var(--bg-card);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.input-bar .num-btn:hover {
+    background: var(--accent);
+    color: #fff;
+}
+.input-bar .num-btn:active {
+    background: var(--accent-active);
+    color: #fff;
+}
+
+.input-bar .team-btn {
+    color: var(--accent);
+    border-color: rgba(79, 140, 255, 0.3);
+}
+.input-bar .team-btn:hover {
+    background: rgba(79, 140, 255, 0.15);
+    border-color: var(--accent);
+}
+.input-bar .restart-btn {
+    color: var(--danger);
+    border-color: rgba(231, 76, 60, 0.3);
+}
+.input-bar .restart-btn:hover {
+    background: rgba(231, 76, 60, 0.15);
+    color: var(--danger);
+    border-color: var(--danger);
+}
+
+/* 토큰 재시도 바 */
+.token-retry-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 8px 16px;
+    background: linear-gradient(90deg, #2a1a3e, #1a2a4e);
+    border-top: 1px solid #4f8cff44;
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 500;
+    flex-shrink: 0;
+    animation: retryPulse 2s ease-in-out infinite;
+}
+@keyframes retryPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.input-bar .send-btn {
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius-md);
+    color: #fff;
+    padding: 0 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    height: 42px;
+    transition: background var(--transition-fast), transform var(--transition-fast), opacity var(--transition-fast);
+    -webkit-tap-highlight-color: transparent;
+}
+.input-bar .send-btn:hover {
+    background: var(--accent-hover);
+}
+.input-bar .send-btn:active {
+    background: var(--accent-active);
+    transform: scale(0.96);
+}
+.input-bar .send-btn:disabled {
+    background: var(--bg-card);
+    color: var(--text-dim);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+.input-bar .send-btn:disabled:hover {
+    background: var(--bg-card);
+    transform: none;
+}
