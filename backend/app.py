@@ -156,11 +156,14 @@ async def _capture_tmux_pane_async(
     target: str,
     start_line: str = "-500",
     *,
+    end_line: str = "",
     escape_sequences: bool = False,
     join_lines: bool = False,
 ) -> str:
     try:
         cmd: List[str] = [TMUX, "capture-pane", "-t", target, "-p", "-S", start_line]
+        if end_line:
+            cmd.extend(["-E", end_line])
         if escape_sequences:
             cmd.insert(4, "-e")
         if join_lines:

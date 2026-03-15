@@ -57,6 +57,7 @@
     App._serverDown = false;
     App._statusTimer = null;
     App._panesAutoShown = false;
+    App._lastDetectedModel = null;
 
     App.safeFit = function(addon) { try { addon.fit(); } catch (_) {} };
 

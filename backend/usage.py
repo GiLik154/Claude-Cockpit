@@ -22,19 +22,45 @@ router = APIRouter()
 
 
 @router.get("/api/sessions/{session_id}/status")
-async def api_session_status(session_id: str) -> Dict[str, Optional[int]]:
-    """tmux 상태 바에서 context-left 퍼센트를 파싱."""
+async def api_session_status(session_id: str) -> Dict[str, Any]:
+    """tmux 상태 바에서 context-left 퍼센트와 모델 정보를 파싱."""
     import backend.app as _app
 
     _app._validate_session_id(session_id)
     tmux_name = f"{PREFIX}{session_id}"
     if not _app.session_exists(tmux_name):
-        return {"context_left": None}
-    raw = await _app._capture_tmux_pane_async(tmux_name, "-5", join_lines=True)
-    clean = ANSI_ESCAPE.sub('', raw)
-    m = re.search(r'Context left until auto-compact:\s*(\d+)%', clean)
+        return {"context_left": None, "model": None}
+
+    # context left: 하단 5줄
+    raw_bottom = await _app._capture_tmux_pane_async(tmux_name, "-5", join_lines=True)
+    clean_bottom = ANSI_ESCAPE.sub('', raw_bottom)
+    m = re.search(r'Context left until auto-compact:\s*(\d+)%', clean_bottom)
     context_left = int(m.group(1)) if m else None
-    return {"context_left": context_left}
+
+    # 모델 감지: 스크롤백 전체 캡처 → 상단 5줄에서 배너 파싱
+    raw_all = await _app._capture_tmux_pane_async(tmux_name, "-")
+    banner = "\n".join(raw_all.split("\n")[:5])
+    clean_banner = ANSI_ESCAPE.sub('', banner)
+    model = _detect_model(clean_banner)
+
+    # 감지된 모델을 메타데이터에 업데이트
+    if model:
+        async with _app._meta_lock:
+            meta = _app.load_session_meta()
+            if session_id in meta and meta[session_id].get("model") != model:
+                meta[session_id]["model"] = model
+                _app.save_session_meta(meta)
+
+    return {"context_left": context_left, "model": model}
+
+
+def _detect_model(text: str) -> Optional[str]:
+    """Claude CLI 배너에서 모델명을 감지."""
+    # 패턴: "Opus 4.6", "Sonnet 4.5", "Haiku 3.5" 등
+    m = re.search(r'\b(Opus|Sonnet|Haiku)\s+[\d.]+', text, re.IGNORECASE)
+    if m:
+        return m.group(1).lower()
+    return None
 
 
 @router.post("/api/sessions/{session_id}/usage")

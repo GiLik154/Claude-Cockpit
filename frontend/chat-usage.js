@@ -178,6 +178,14 @@
                     App.sessionUsage[App.currentSession].contextLeft = data.context_left;
                     App.updateUsageBadge(App.currentSession, {});
                 }
+                // 모델이 감지되면 세션 목록 갱신 (메타데이터가 업데이트됨)
+                if (data.model && !App._lastDetectedModel) {
+                    App._lastDetectedModel = data.model;
+                    App.loadSessions();
+                } else if (data.model && data.model !== App._lastDetectedModel) {
+                    App._lastDetectedModel = data.model;
+                    App.loadSessions();
+                }
             })
             .catch(function() {});
     };

@@ -150,6 +150,7 @@
     App.switchSession = function(sessionId) {
         // 세션 전환 시 라이브 뷰/panes 모드 해제
         if (App.viewMode !== 'terminal') { App.exitLiveView(); App.viewMode = 'terminal'; App.updateViewModeBtn(); }
+        App._lastDetectedModel = null;
         App.setPanesOff();
         App.cleanupPanes();
 
