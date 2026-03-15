@@ -148,6 +148,15 @@
 
         area.appendChild(grid);
 
+        // 뷰 헤더 (그리드/채팅 토글)
+        var oldHeader = document.getElementById('groupViewHeader');
+        if (oldHeader) oldHeader.remove();
+        var viewHeader = App.createGroupViewHeader(group);
+        area.appendChild(viewHeader);
+
+        // 그리드 위치를 헤더 아래로
+        grid.style.top = '37px';
+
         // placeholder, 버튼 업데이트
         App._updateGroupPlaceholder();
         App.updateSendButton();
@@ -257,6 +266,7 @@
     App.exitGroupView = function() {
         App.currentGroup = null;
         App.groupFocusedSession = null;
+        App.cleanupGroupChat();
         var grid = document.getElementById('groupGrid');
         if (grid) {
             // 터미널을 원래 terminalArea로 복귀

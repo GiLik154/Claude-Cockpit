@@ -108,7 +108,13 @@
                 if (usage) App.updateUsageBadge(sessionId, usage);
                 var waitSecs = App.detectTokenExpiry(p.data);
                 if (waitSecs > 0 && sessionId === App.currentSession) {
-                    App.startTokenRetry(waitSecs);
+                    // 사용량이 실제로 높을 때만 재시도 (오탐 방지)
+                    var u = App.sessionUsage[sessionId];
+                    var contextExhausted = u && u.contextLeft != null && u.contextLeft <= 5;
+                    var sessionExhausted = u && u.sessionUsed != null && u.sessionUsed >= 95;
+                    if (contextExhausted || sessionExhausted || !u || u.contextLeft == null) {
+                        App.startTokenRetry(waitSecs);
+                    }
                 }
                 if (App.viewMode !== 'terminal' && sessionId === App.currentSession) {
                     App.scheduleLiveRefresh();

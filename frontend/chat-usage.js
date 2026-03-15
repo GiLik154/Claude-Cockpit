@@ -39,21 +39,29 @@
     };
 
     App.detectTokenExpiry = function(text) {
+        var clean = App.stripAnsi(text);
+        var lines = clean.split('\n');
         var patterns = [
             /(?:rate.?limit|token.?limit|too many requests).*?(\d+)\s*(?:second|sec|s\b|분)/i,
-            /(?:retry|retrying|waiting|재시도|대기).*?(\d+)\s*(?:second|sec|s\b|분)/i,
-            /(\d+)\s*(?:second|sec|s\b|분).*?(?:retry|wait|대기|재시도)/i,
+            /(?:retry|retrying|waiting).*?(\d+)\s*(?:second|sec|s\b|분)/i,
+            /(\d+)\s*(?:second|sec|s\b|분).*?(?:retry|wait)/i,
             /⏳.*?(\d+)/,
         ];
-        for (var p = 0; p < patterns.length; p++) {
-            var m = text.match(patterns[p]);
-            if (m) {
-                var secs = parseInt(m[1], 10);
-                if (text.includes('분')) secs *= 60;
-                return secs;
+        for (var li = 0; li < lines.length; li++) {
+            var line = lines[li].trim();
+            // 사용자 입력, thinking/working, 일반 진행 상태는 건너뛰기
+            if (!line || /^❯/.test(line) || /^[✻✳✶✽✢⏺⎿]/.test(line)) continue;
+            for (var p = 0; p < patterns.length; p++) {
+                var m = line.match(patterns[p]);
+                if (m) {
+                    var secs = parseInt(m[1], 10);
+                    if (secs < 5 || secs > 3600) continue; // 5초 미만 또는 1시간 초과는 무시
+                    if (line.includes('분')) secs *= 60;
+                    return secs;
+                }
             }
         }
-        if (/(?:session.?expired|token.?expired|세션.*만료|토큰.*만료)/i.test(text)) {
+        if (/(?:session.?expired|token.?expired|세션.*만료|토큰.*만료)/i.test(clean)) {
             return App.TOKEN_EXPIRY_DEFAULT_SECS;
         }
         return 0;

@@ -78,6 +78,9 @@
         return entries;
     }
 
+    // 외부 모듈에서 파싱 재활용
+    App.parseEntries = _parseEntries;
+
     function _groupByCommand(entries) {
         var groups = [];
         var current = null;
