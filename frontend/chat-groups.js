@@ -107,9 +107,23 @@
                 (m.alive ? '<span style="color:var(--success)">\u25CF</span>' : '<span style="color:var(--danger)">\u25CF</span>');
             cell.appendChild(header);
 
-            // 셀 전체 클릭 → 포커스 토글 (개별 전송 모드)
+            var termWrap = document.createElement('div');
+            termWrap.className = 'group-cell-terminal';
+
+            // 터미널 위에 투명 오버레이 → 클릭하면 포커스
+            var overlay = document.createElement('div');
+            overlay.className = 'group-cell-overlay';
+            termWrap.appendChild(overlay);
+
+            cell.appendChild(termWrap);
+
+            // 오버레이 + 헤더 클릭 → 포커스 토글
             (function(sid, role, name) {
-                cell.addEventListener('click', function() {
+                overlay.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    App.focusGroupCell(sid, role || name);
+                });
+                header.addEventListener('click', function() {
                     if (App.groupFocusedSession === sid) {
                         App.unfocusGroupCell();
                     } else {
@@ -117,10 +131,6 @@
                     }
                 });
             })(m.session_id, m.role, m.name);
-
-            var termWrap = document.createElement('div');
-            termWrap.className = 'group-cell-terminal';
-            cell.appendChild(termWrap);
             grid.appendChild(cell);
 
             // 터미널 생성 또는 이동
