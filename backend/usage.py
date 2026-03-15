@@ -2,6 +2,7 @@
 
 import asyncio
 import re
+import time
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, HTTPException
@@ -11,9 +12,8 @@ from backend.constants import (
     PREFIX,
     TMUX_CD_DELAY,
     USAGE_CAPTURE_DELAY,
-    USAGE_FIRST_READY_DELAY,
-    USAGE_LOADING_MAX_RETRIES,
-    USAGE_LOADING_RETRY_DELAY,
+    USAGE_OUTPUT_POLL_INTERVAL,
+    USAGE_OUTPUT_POLL_TIMEOUT,
     USAGE_TMUX,
     TMUX_USAGE_COLS,
 )
@@ -80,6 +80,24 @@ async def api_session_usage(session_id: str) -> Dict[str, Any]:
     return _app._parse_usage_output(raw)
 
 
+async def _poll_usage_output(app_mod: Any) -> str:
+    """usage 출력이 완료될 때까지 폴링. '% used' 패턴 또는 타임아웃까지 대기."""
+    deadline = time.monotonic() + USAGE_OUTPUT_POLL_TIMEOUT
+    # 최소 대기 후 폴링 시작
+    await asyncio.sleep(USAGE_CAPTURE_DELAY)
+    while time.monotonic() < deadline:
+        raw = await app_mod._capture_tmux_pane_async(USAGE_TMUX, "-30")
+        clean = ANSI_ESCAPE.sub('', raw)
+        if '% used' in clean and 'Loading usage data' not in clean:
+            return raw
+        if 'Loading usage data' not in clean and '/usage' not in clean.split('\n')[-1]:
+            # 로딩도 아니고 아직 /usage 입력 중도 아니면 결과가 나온 것
+            if clean.strip():
+                return raw
+        await asyncio.sleep(USAGE_OUTPUT_POLL_INTERVAL)
+    return raw
+
+
 @router.post("/api/usage")
 async def api_global_usage() -> Dict[str, Any]:
     """전용 usage 세션에서 사용량을 조회 (활성 세션에 영향 없음)."""
@@ -88,7 +106,8 @@ async def api_global_usage() -> Dict[str, Any]:
     await _app._ensure_usage_session()
 
     if not _app._usage_ready:
-        await asyncio.sleep(USAGE_FIRST_READY_DELAY)
+        # 프롬프트 대기 (recreate에서 이미 폴링했지만 안전장치)
+        await _app._wait_for_usage_prompt()
         _app._usage_ready = True
     else:
         # 이전 다이얼로그 닫기
@@ -97,17 +116,9 @@ async def api_global_usage() -> Dict[str, Any]:
 
     _app.tmux_run("resize-window", "-t", USAGE_TMUX, "-x", TMUX_USAGE_COLS)
     _app.tmux_run("send-keys", "-t", USAGE_TMUX, "/usage", "Enter")
-    await asyncio.sleep(USAGE_CAPTURE_DELAY)
 
-    raw = await _app._capture_tmux_pane_async(USAGE_TMUX, "-30")
-
-    # "Loading usage data" 감지 시 재시도
-    for _ in range(USAGE_LOADING_MAX_RETRIES):
-        clean = ANSI_ESCAPE.sub('', raw)
-        if 'Loading usage data' not in clean:
-            break
-        await asyncio.sleep(USAGE_LOADING_RETRY_DELAY)
-        raw = await _app._capture_tmux_pane_async(USAGE_TMUX, "-30")
+    # 고정 sleep 대신 결과 폴링
+    raw = await _poll_usage_output(_app)
 
     _app.tmux_run("send-keys", "-t", USAGE_TMUX, "Escape", "")
 

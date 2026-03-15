@@ -35,6 +35,8 @@ from backend.constants import (
     TMUX_SESSION_INIT_DELAY,
     TMUX_USAGE_SESSION_COLS,
     USAGE_CLI_STARTUP_DELAY,
+    USAGE_PROMPT_POLL_INTERVAL,
+    USAGE_PROMPT_POLL_TIMEOUT,
     USAGE_TMUX,
     _VALID_PANE_ID,
     _VALID_SESSION_ID,
@@ -49,6 +51,12 @@ _meta_lock = asyncio.Lock()
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Claude Web Console")
+
+
+@app.on_event("startup")
+async def _prewarm_usage_session() -> None:
+    """서버 시작 시 usage 세션을 백그라운드로 미리 생성."""
+    asyncio.create_task(_ensure_usage_session())
 
 
 # --- 유효성 검사 ---
@@ -260,6 +268,21 @@ async def _usage_session_healthy() -> bool:
     return True
 
 
+async def _wait_for_usage_prompt() -> bool:
+    """usage 세션에서 ❯ 프롬프트가 나타날 때까지 폴링. 성공 시 True."""
+    deadline = time.monotonic() + USAGE_PROMPT_POLL_TIMEOUT
+    while time.monotonic() < deadline:
+        raw = await _capture_tmux_pane_async(USAGE_TMUX, "-5")
+        clean = ANSI_ESCAPE.sub('', raw)
+        if '❯' in clean:
+            return True
+        # trust 다이얼로그가 나타나면 수락
+        if 'Trust' in clean or 'trust' in clean or 'Yes' in clean:
+            tmux_run("send-keys", "-t", USAGE_TMUX, "", "Enter")
+        await asyncio.sleep(USAGE_PROMPT_POLL_INTERVAL)
+    return False
+
+
 async def _recreate_usage_session() -> None:
     global _usage_ready
     kill_tmux_session(USAGE_TMUX)
@@ -275,10 +298,12 @@ async def _recreate_usage_session() -> None:
     tmux_run("send-keys", "-t", USAGE_TMUX, f"cd {shlex.quote(home)}", "Enter")
     await asyncio.sleep(TMUX_CD_DELAY)
     tmux_run("send-keys", "-t", USAGE_TMUX, "claude --dangerously-skip-permissions", "Enter")
-    await asyncio.sleep(USAGE_CLI_STARTUP_DELAY)
-    # trust 다이얼로그 수락
-    tmux_run("send-keys", "-t", USAGE_TMUX, "", "Enter")
-    _usage_ready = False
+    # 고정 sleep 대신 프롬프트 폴링
+    if not await _wait_for_usage_prompt():
+        # 폴백: trust 다이얼로그 수락 후 재시도
+        tmux_run("send-keys", "-t", USAGE_TMUX, "", "Enter")
+        await _wait_for_usage_prompt()
+    _usage_ready = True
 
 
 async def _ensure_usage_session() -> None:
