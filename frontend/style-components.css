@@ -250,34 +250,6 @@
     font-size: 10px;
     color: var(--text-dim);
 }
-.onboarding-tips {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 16px 20px;
-    width: 100%;
-    text-align: left;
-}
-.onboarding-tips ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-.onboarding-tips li {
-    font-size: 12px;
-    color: var(--text-dim);
-    padding: 4px 0;
-    line-height: 1.5;
-}
-.onboarding-tips li::before {
-    content: '→ ';
-    color: var(--accent);
-}
-.onboarding-tips strong {
-    color: var(--text);
-    font-weight: 600;
-}
-
 /* 툴바 버튼 가이드 */
 .toolbar-guide {
     width: 100%;
@@ -355,13 +327,6 @@
     border-color: rgba(231, 76, 60, 0.3);
 }
 
-.onboarding-section-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-dim);
-    margin-bottom: 6px;
-    text-align: center;
-}
 .onboarding-modes {
     display: flex;
     gap: 16px;
