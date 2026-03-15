@@ -280,34 +280,79 @@
 
 /* 툴바 버튼 가이드 */
 .toolbar-guide {
+    width: 100%;
+    max-width: 460px;
+}
+.toolbar-guide-mock {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+.toolbar-guide .guide-item {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    width: 100%;
-    max-width: 320px;
-}
-.toolbar-guide-row {
-    display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 4px;
 }
-.toolbar-guide .guide-btn {
-    background: var(--bg-hover);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 4px 10px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text);
-    min-width: 48px;
+.toolbar-guide .guide-btn-group {
+    display: flex;
+    gap: 4px;
+}
+.toolbar-guide .guide-label {
+    font-size: 9px;
+    color: var(--accent);
     text-align: center;
     white-space: nowrap;
-    flex-shrink: 0;
+    letter-spacing: -0.02em;
 }
-.toolbar-guide .guide-arrow {
+/* 실제 툴바와 동일한 버튼 스타일 */
+.toolbar-guide .cancel-btn {
+    background: var(--danger);
+    border: none;
+    border-radius: var(--radius-md);
+    color: #fff;
+    padding: 0 10px;
     font-size: 12px;
+    font-weight: 700;
+    height: 30px;
+    cursor: default;
+}
+.toolbar-guide .tool-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
     color: var(--text-dim);
-    white-space: nowrap;
+    padding: 0 8px;
+    font-size: 11px;
+    font-weight: 600;
+    height: 30px;
+    cursor: default;
+}
+.toolbar-guide .esc-btn {
+    background: #5a3e7a;
+    border-color: #6b4d8a;
+    color: #ddd;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+.toolbar-guide .num-btn {
+    font-size: 12px;
+    font-weight: 700;
+    min-width: 28px;
+    padding: 0 4px;
+    text-align: center;
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.toolbar-guide .team-btn {
+    color: var(--accent);
+    border-color: rgba(79, 140, 255, 0.3);
+}
+.toolbar-guide .restart-btn {
+    color: var(--danger);
+    border-color: rgba(231, 76, 60, 0.3);
 }
 
 .onboarding-section-title {
