@@ -278,6 +278,38 @@
     font-weight: 600;
 }
 
+/* 툴바 버튼 가이드 */
+.toolbar-guide {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    max-width: 320px;
+}
+.toolbar-guide-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.toolbar-guide .guide-btn {
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    min-width: 48px;
+    text-align: center;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.toolbar-guide .guide-arrow {
+    font-size: 12px;
+    color: var(--text-dim);
+    white-space: nowrap;
+}
+
 .onboarding-section-title {
     font-size: 13px;
     font-weight: 600;
