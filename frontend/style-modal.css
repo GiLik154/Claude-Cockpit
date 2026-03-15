@@ -344,3 +344,25 @@
     color: var(--text-dim);
     text-align: center;
 }
+
+/* 프리셋 위험 경고 */
+.preset-danger-warning {
+    display: block;
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: rgba(231, 76, 60, 0.12);
+    border: 1px solid rgba(231, 76, 60, 0.4);
+    border-radius: var(--radius-sm);
+    color: var(--danger);
+    font-size: 12px;
+    line-height: 1.5;
+}
+.preset-danger-warning strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 13px;
+}
+.preset-danger-warning p {
+    margin: 0;
+    color: var(--text-dim);
+}

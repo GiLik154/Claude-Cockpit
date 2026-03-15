@@ -169,3 +169,11 @@ body.sidebar-resizing {
 body.sidebar-resizing * {
     cursor: col-resize !important;
 }
+
+/* 세션 위험 모드 뱃지 */
+.danger-badge {
+    color: var(--danger);
+    font-size: 12px;
+    vertical-align: middle;
+    margin-left: 2px;
+}

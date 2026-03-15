@@ -22,6 +22,7 @@ from backend.constants import (
     LOGS_DIR,
     PREFIX,
     PRESET_COMMANDS,
+    SENSITIVE_ENV_PREFIXES,
     SESSIONS_FILE,
     STORAGE_DIR,
     TMUX,
@@ -39,6 +40,9 @@ from backend.constants import (
 
 # 전용 usage 세션 초기화 여부
 _usage_ready: bool = False
+
+# 세션 메타데이터 동시 접근 방지 잠금
+_meta_lock = asyncio.Lock()
 
 logger = logging.getLogger(__name__)
 
@@ -63,9 +67,9 @@ def _validate_pane_id(pane_id: str) -> None:
 # --- 환경변수 ---
 
 def _clean_env() -> Dict[str, str]:
-    """CLAUDECODE/CLAUDE_CODE_ENTRY 환경변수를 제거한 사본을 반환."""
+    """민감한 환경변수를 제거한 사본을 반환."""
     return {k: v for k, v in os.environ.items()
-            if not k.startswith("CLAUDECODE") and not k.startswith("CLAUDE_CODE_ENTRY")}
+            if not k.startswith(SENSITIVE_ENV_PREFIXES)}
 
 
 # --- 로그 ---

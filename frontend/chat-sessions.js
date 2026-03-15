@@ -25,15 +25,17 @@
             var entry = App.terminals[s.session_id];
             var wsState = entry && entry.ws ? entry.ws.readyState : null;
             var connected = wsState === WebSocket.OPEN;
+            var sid = App.esc(s.session_id);
+            var dangerBadge = s.danger_mode ? ' <span class="danger-badge" title="Skip Permissions">&#9888;</span>' : '';
             div.className = 'session-item' + (isActive ? ' active' : '');
             div.innerHTML =
-                '<div class="session-info" onclick="switchSession(\'' + s.session_id + '\')">' +
-                    '<div class="name">' + App.esc(s.name) + ' ' + (connected ? '<span style="color:var(--success)">\u25CF</span>' : '<span style="color:var(--danger)">\u25CF</span>') + '</div>' +
+                '<div class="session-info" onclick="switchSession(\'' + sid + '\')">' +
+                    '<div class="name">' + App.esc(s.name) + dangerBadge + ' ' + (connected ? '<span style="color:var(--success)">\u25CF</span>' : '<span style="color:var(--danger)">\u25CF</span>') + '</div>' +
                     '<div class="status ' + (s.alive ? 'alive' : 'dead') + '">' + (s.alive ? 'Running' : 'Stopped') + '</div>' +
                 '</div>' +
                 '<div class="session-actions">' +
-                    (!s.alive ? '<button class="restart-btn" onclick="event.stopPropagation();restartSession(\'' + s.session_id + '\')" title="Restart">&#x21bb;</button>' : '') +
-                    '<button class="delete-btn" onclick="event.stopPropagation();deleteSession(\'' + s.session_id + '\')" title="Delete">&times;</button>' +
+                    (!s.alive ? '<button class="restart-btn" onclick="event.stopPropagation();restartSession(\'' + sid + '\')" title="Restart">&#x21bb;</button>' : '') +
+                    '<button class="delete-btn" onclick="event.stopPropagation();deleteSession(\'' + sid + '\')" title="Delete">&times;</button>' +
                 '</div>';
             list.appendChild(div);
         });
@@ -53,6 +55,9 @@
         .then(function(data) {
             if (data.error) { App.showStatus('Error: ' + data.error); return; }
             App.closeModal();
+            if (data.danger_mode) {
+                App.showStatus('\u26A0 Skip Permissions 모드로 생성됨 — 주의 필요');
+            }
             App.loadSessions().then(function() {
                 App.switchSession(data.session_id);
             });

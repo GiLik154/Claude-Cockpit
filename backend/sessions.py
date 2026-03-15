@@ -6,7 +6,13 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import PlainTextResponse
 
-from backend.constants import MAX_CAPTURE_LINES, PREFIX
+from backend.constants import (
+    DANGER_PRESETS,
+    MAX_CAPTURE_LINES,
+    MAX_SEND_KEYS_LENGTH,
+    MAX_SESSIONS,
+    PREFIX,
+)
 
 router = APIRouter()
 
@@ -21,50 +27,70 @@ async def api_list_sessions() -> List[Dict[str, Any]]:
     result: List[Dict[str, Any]] = []
     for sid, info in meta.items():
         tmux_name = f"{PREFIX}{sid}"
+        preset = info.get("preset", "")
         result.append({
             "session_id": sid,
             "name": info.get("name", sid),
             "cmd": info.get("cmd", ""),
             "cwd": info.get("cwd", ""),
-            "preset": info.get("preset", ""),
+            "preset": preset,
             "alive": tmux_name in alive_sessions,
+            "danger_mode": preset in DANGER_PRESETS,
         })
     return result
 
 
 @router.post("/api/sessions")
-async def api_create_session(body: Dict[str, Any]) -> Dict[str, str]:
+async def api_create_session(body: Dict[str, Any]) -> Dict[str, Any]:
     """새 Claude CLI 세션(tmux)을 생성."""
     import backend.app as _app
 
-    meta = _app.load_session_meta()
+    async with _app._meta_lock:
+        meta = _app.load_session_meta()
 
-    existing_nums: List[int] = []
-    for k in meta:
-        try:
-            existing_nums.append(int(k))
-        except ValueError:
-            pass
-    sid = str(max(existing_nums, default=0) + 1)
+        if len(meta) >= MAX_SESSIONS:
+            raise HTTPException(
+                status_code=429,
+                detail=f"최대 세션 수({MAX_SESSIONS}개)에 도달했습니다",
+            )
 
-    name = body.get("name", f"Claude {sid}")
-    preset = body.get("preset", "default")
-    cwd = body.get("cwd") or os.path.expanduser("~")
+        existing_nums: List[int] = []
+        for k in meta:
+            try:
+                existing_nums.append(int(k))
+            except ValueError:
+                pass
+        sid = str(max(existing_nums, default=0) + 1)
 
-    cmd = _app._resolve_preset_cmd(preset)
+        name = body.get("name", f"Claude {sid}")
+        preset = body.get("preset", "default")
+        cwd = body.get("cwd") or os.path.expanduser("~")
 
-    tmux_name = f"{PREFIX}{sid}"
-    _app.create_tmux_session(tmux_name, cmd, cwd)
+        real_cwd = os.path.realpath(cwd)
+        if not os.path.isdir(real_cwd):
+            raise HTTPException(
+                status_code=400,
+                detail=f"작업 디렉터리가 존재하지 않습니다: {cwd}",
+            )
 
-    meta[sid] = {
+        cmd = _app._resolve_preset_cmd(preset)
+
+        tmux_name = f"{PREFIX}{sid}"
+        _app.create_tmux_session(tmux_name, cmd, real_cwd)
+
+        meta[sid] = {
+            "name": name,
+            "cmd": " ".join(cmd),
+            "cwd": real_cwd,
+            "preset": preset,
+        }
+        _app.save_session_meta(meta)
+
+    return {
+        "session_id": sid,
         "name": name,
-        "cmd": " ".join(cmd),
-        "cwd": cwd,
-        "preset": preset,
+        "danger_mode": preset in DANGER_PRESETS,
     }
-    _app.save_session_meta(meta)
-
-    return {"session_id": sid, "name": name}
 
 
 @router.post("/api/sessions/{session_id}/restart")
@@ -73,19 +99,20 @@ async def api_restart_session(session_id: str) -> Dict[str, bool]:
     import backend.app as _app
 
     _app._validate_session_id(session_id)
-    meta = _app.load_session_meta()
-    info = meta.get(session_id)
-    if not info:
-        raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
+    async with _app._meta_lock:
+        meta = _app.load_session_meta()
+        info = meta.get(session_id)
+        if not info:
+            raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
 
-    tmux_name = f"{PREFIX}{session_id}"
-    _app.kill_tmux_session(tmux_name)
+        tmux_name = f"{PREFIX}{session_id}"
+        _app.kill_tmux_session(tmux_name)
 
-    preset = info.get("preset", "default")
-    cmd = _app._resolve_preset_cmd(preset)
+        preset = info.get("preset", "default")
+        cmd = _app._resolve_preset_cmd(preset)
 
-    info["cmd"] = " ".join(cmd)
-    _app.save_session_meta(meta)
+        info["cmd"] = " ".join(cmd)
+        _app.save_session_meta(meta)
 
     _app.create_tmux_session(tmux_name, cmd, info["cwd"])
     return {"ok": True}
@@ -97,11 +124,12 @@ async def api_delete_session(session_id: str) -> Dict[str, bool]:
     import backend.app as _app
 
     _app._validate_session_id(session_id)
-    meta = _app.load_session_meta()
-    tmux_name = f"{PREFIX}{session_id}"
-    _app.kill_tmux_session(tmux_name)
-    meta.pop(session_id, None)
-    _app.save_session_meta(meta)
+    async with _app._meta_lock:
+        meta = _app.load_session_meta()
+        tmux_name = f"{PREFIX}{session_id}"
+        _app.kill_tmux_session(tmux_name)
+        meta.pop(session_id, None)
+        _app.save_session_meta(meta)
     return {"ok": True}
 
 
@@ -136,6 +164,11 @@ async def api_send_keys(session_id: str, body: Dict[str, Any]) -> Dict[str, bool
     text = body.get("text", "")
     if not pane_id or not text:
         raise HTTPException(status_code=400, detail="pane_id and text required")
+    if len(text) > MAX_SEND_KEYS_LENGTH:
+        raise HTTPException(
+            status_code=400,
+            detail=f"텍스트가 너무 깁니다 (최대 {MAX_SEND_KEYS_LENGTH}자)",
+        )
     _app._validate_pane_id(pane_id)
 
     tmux_name = f"{PREFIX}{session_id}"

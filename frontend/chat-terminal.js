@@ -81,7 +81,8 @@
         if (!entry) return;
         if (entry.ws) { entry.ws.onclose = null; entry.ws.close(); }
 
-        var ws = new WebSocket('ws://' + location.host + '/ws/terminal/' + sessionId);
+        var wsProto = location.protocol === 'https:' ? 'wss://' : 'ws://';
+        var ws = new WebSocket(wsProto + location.host + '/ws/terminal/' + sessionId);
         entry.ws = ws;
 
         ws.onopen = function() {

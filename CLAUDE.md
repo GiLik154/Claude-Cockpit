@@ -8,8 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Install dependencies
 pip install -r requirements.txt
 
-# Start the server (from project root)
-uvicorn backend.app:app --host 0.0.0.0 --port 8080 --reload
+# Start the server (from project root) — 로컬 전용
+uvicorn backend.app:app --host 127.0.0.1 --port 8080 --reload
 ```
 
 Requires `tmux` to be installed on the system. The app serves at `http://localhost:8080`.
@@ -52,7 +52,16 @@ Key details:
 - JS modules: `chat-core.js` (constants/state), `chat-ui.js` (modals/sidebar), `chat-log.js` (log viewer), `chat-usage.js` (usage badge), `chat-input.js` (input/IME), `chat-panes.js` (agent teams view), `chat-sessions.js` (session CRUD), `chat-terminal.js` (xterm/WebSocket), `chat.js` (entry point)
 - CSS modules: `style.css` (variables), `style-layout.css`, `style-sidebar.css`, `style-terminal.css`, `style-modal.css`, `style-input.css`, `style-components.css`, `style-responsive.css`
 
-**Static assets are versioned** via `?v=N` query param on CSS/JS imports in `index.html`. Bump this number when changing frontend files. Currently v54.
+**Static assets are versioned** via `?v=N` query param on CSS/JS imports in `index.html`. Bump this number when changing frontend files. Currently v2.
+
+### Security
+
+- **로컬 전용**: `127.0.0.1`로 바인딩 (인증 없으므로 `0.0.0.0` 사용 금지)
+- **Skip Permissions 경고**: `--dangerously-skip-permissions` 포함 프리셋은 UI에 위험 표시
+- **세션 제한**: 최대 20개, WebSocket 메시지 100KB, send-keys 10,000자 제한
+- **환경변수 보호**: `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` 등 자식 프로세스에서 제거
+- **CDN SRI**: xterm.js CDN 스크립트에 Subresource Integrity 적용
+- **cwd 검증**: 세션 생성 시 작업 디렉터리 존재 여부 확인 (`os.path.realpath`로 심볼릭 링크 해결)
 
 ### Key Frontend Behaviors
 

@@ -15,10 +15,13 @@ from typing import Tuple
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from backend.constants import (
+    MAX_WS_MESSAGE_SIZE,
     PREFIX,
     PTY_POLL_INTERVAL,
     PTY_READ_BUFFER,
     PTY_SPAWN_TIMEOUT,
+    RESIZE_MAX,
+    RESIZE_MIN,
     TMUX,
     TMUX_DEFAULT_COLS,
     TMUX_DEFAULT_ROWS,
@@ -121,6 +124,8 @@ async def ws_terminal(ws: WebSocket, session_id: str) -> None:
     try:
         while True:
             msg = await ws.receive_text()
+            if len(msg) > MAX_WS_MESSAGE_SIZE:
+                continue
             payload = json.loads(msg)
             msg_type = payload.get("type")
 
@@ -133,8 +138,8 @@ async def ws_terminal(ws: WebSocket, session_id: str) -> None:
                 except OSError:
                     break
             elif msg_type == "resize":
-                rows = payload.get("rows", int(TMUX_DEFAULT_ROWS))
-                cols = payload.get("cols", int(TMUX_DEFAULT_COLS))
+                rows = max(RESIZE_MIN, min(RESIZE_MAX, int(payload.get("rows", TMUX_DEFAULT_ROWS))))
+                cols = max(RESIZE_MIN, min(RESIZE_MAX, int(payload.get("cols", TMUX_DEFAULT_COLS))))
                 winsize = struct.pack("HHHH", rows, cols, 0, 0)
                 fcntl.ioctl(fd, termios.TIOCSWINSZ, winsize)
                 _app.tmux_run("resize-window", "-t", tmux_name, "-x", str(cols), "-y", str(rows))
