@@ -69,6 +69,8 @@
             App.closeModal();
             if (data.danger_mode) {
                 App.showStatus('\u26A0 Skip Permissions 모드로 생성됨 — 주의 필요');
+            } else {
+                App.showStatus('세션 생성됨', true);
             }
             App.loadSessions().then(function() {
                 App.switchSession(data.session_id);

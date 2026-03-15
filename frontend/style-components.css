@@ -433,6 +433,11 @@
 ::-webkit-scrollbar-thumb:hover {
     background: var(--border-light);
 }
+/* Firefox 스크롤바 */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+}
 
 /* 접근성 */
 .input-bar .tool-btn:focus-visible,

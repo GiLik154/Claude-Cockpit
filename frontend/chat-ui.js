@@ -7,6 +7,8 @@
         if (!el) {
             el = document.createElement('div');
             el.id = 'statusMsg';
+            el.setAttribute('role', 'alert');
+            el.setAttribute('aria-live', 'polite');
             el.style.cssText = 'position:fixed;top:50px;left:50%;transform:translateX(-50%);color:#fff;padding:8px 20px;border-radius:20px;font-size:12px;z-index:200;max-width:90vw;cursor:pointer;';
             el.addEventListener('click', function() { el.style.display = 'none'; });
             document.body.appendChild(el);
