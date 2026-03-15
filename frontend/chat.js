@@ -63,6 +63,46 @@
         }
     });
 
+    // 글로벌 단축키
+    document.addEventListener('keydown', function(e) {
+        // 입력 필드에 포커스 중이면 대부분 무시
+        var active = document.activeElement;
+        var inInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT');
+
+        // Alt+1~9: 세션 빠른 전환
+        if (e.altKey && e.key >= '1' && e.key <= '9') {
+            e.preventDefault();
+            var idx = parseInt(e.key) - 1;
+            var items = document.querySelectorAll('.session-item .session-info');
+            if (items[idx]) items[idx].click();
+            return;
+        }
+
+        // 입력 필드 안이면 나머지 단축키 무시
+        if (inInput) return;
+
+        // Ctrl+N: 새 세션
+        if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+            e.preventDefault();
+            App.openNewSession();
+            return;
+        }
+
+        // Ctrl+L: 로그 뷰어
+        if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
+            e.preventDefault();
+            App.viewLog();
+            return;
+        }
+
+        // Ctrl+P: Panes 토글
+        if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+            e.preventDefault();
+            App.togglePanesView();
+            return;
+        }
+    });
+
     App.loadSessions();
 
     // 주기적 폴링 (헬스체크, 세션 목록, panes, 컨텍스트 사용량)
