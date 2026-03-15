@@ -64,8 +64,21 @@
         }
     });
 
+    // 모달 오버레이 클릭 닫기
+    document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) overlay.classList.remove('active');
+        });
+    });
+
     // 글로벌 단축키
     document.addEventListener('keydown', function(e) {
+        // ESC: 열린 모달 닫기
+        if (e.key === 'Escape') {
+            var modals = document.querySelectorAll('.modal-overlay.active');
+            if (modals.length) { modals[modals.length - 1].classList.remove('active'); return; }
+        }
+
         // 입력 필드에 포커스 중이면 대부분 무시
         var active = document.activeElement;
         var inInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT');

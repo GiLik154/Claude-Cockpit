@@ -70,13 +70,13 @@
             remaining--;
             if (remaining <= 0) {
                 clearInterval(App.tokenRetryCountdown);
-                msg.textContent = 'Retrying...';
+                msg.textContent = '재시도 중...';
                 App.doTokenRetry();
             } else {
-                msg.textContent = 'Token refresh in ' + remaining + 's... auto-retry';
+                msg.textContent = '토큰 갱신까지 ' + remaining + '초... 자동 재시도';
             }
         }, 1000);
-        msg.textContent = 'Token refresh in ' + remaining + 's... auto-retry';
+        msg.textContent = '토큰 갱신까지 ' + remaining + '초... 자동 재시도';
     };
 
     App.doTokenRetry = function() {
