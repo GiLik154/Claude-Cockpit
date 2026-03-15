@@ -262,6 +262,10 @@
                         '<button class="btn btn-sm gc-console-close">Close</button>' +
                     '</div>' +
                     '<div class="gc-console-body"></div>' +
+                    '<div class="gc-console-input">' +
+                        '<input type="text" class="gc-console-field" placeholder="명령 입력...">' +
+                        '<button class="btn btn-primary btn-sm gc-console-send">Send</button>' +
+                    '</div>' +
                 '</div>';
             document.body.appendChild(overlay);
 
@@ -270,6 +274,25 @@
                 if (e.target === overlay) App.closeGroupConsole();
             });
             overlay.querySelector('.gc-console-close').addEventListener('click', App.closeGroupConsole);
+
+            // 입력 전송
+            var sendBtn = overlay.querySelector('.gc-console-send');
+            var inputField = overlay.querySelector('.gc-console-field');
+            function doSend() {
+                var text = inputField.value.trim();
+                if (!text || !App._gcConsoleSessionId) return;
+                var t = App.terminals[App._gcConsoleSessionId];
+                if (t && t.ws && t.ws.readyState === WebSocket.OPEN) {
+                    t.ws.send(JSON.stringify({ type: 'input', data: text + '\r' }));
+                    inputField.value = '';
+                    inputField.focus();
+                }
+            }
+            sendBtn.addEventListener('click', doSend);
+            inputField.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') { e.preventDefault(); doSend(); }
+                e.stopPropagation(); // ESC 캡처와 충돌 방지
+            });
         }
 
         overlay.querySelector('.gc-console-title').textContent = (role || 'Session') + ' Console';

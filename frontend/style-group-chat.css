@@ -283,6 +283,27 @@
     position: absolute;
     inset: 0;
 }
+.gc-console-input {
+    display: flex;
+    gap: 8px;
+    padding: 10px 16px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-secondary);
+    flex-shrink: 0;
+}
+.gc-console-field {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 13px;
+    padding: 8px 12px;
+    outline: none;
+}
+.gc-console-field:focus {
+    border-color: var(--accent);
+}
 
 /* --- 반응형 --- */
 @media (max-width: 767px) {
