@@ -59,7 +59,7 @@ async def api_global_usage() -> Dict[str, Any]:
     """전용 usage 세션에서 사용량을 조회 (활성 세션에 영향 없음)."""
     import backend.app as _app
 
-    _app._ensure_usage_session()
+    await _app._ensure_usage_session()
 
     if not _app._usage_ready:
         await asyncio.sleep(USAGE_FIRST_READY_DELAY)
