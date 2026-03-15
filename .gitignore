@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Testing
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# Node.js
+node_modules/
+package-lock.json
+
+# Storage (runtime data — .gitkeep files are tracked)
+storage/logs/*
+!storage/logs/.gitkeep
+storage/sessions.json
+storage/settings.json
+storage/conversations/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Claude Code
+CLAUDE.md
+
+# OS
+.DS_Store
+Thumbs.db

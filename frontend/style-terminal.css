@@ -1,0 +1,333 @@
+/* 터미널 영역, 에이전트 카드, WebSocket 오버레이 */
+.terminal-area {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+.terminal-container {
+    position: absolute;
+    inset: 0;
+    padding: 4px;
+}
+.terminal-container .xterm { height: 100%; }
+
+.empty-state {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 에이전트 카드 그리드 */
+.panes-grid {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 24px;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    justify-content: center;
+    align-content: center;
+    background: linear-gradient(180deg, #1a1a2e 0%, #141425 40%, #1c1a14 100%);
+}
+.agent-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    width: 220px;
+    text-align: center;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+    cursor: pointer;
+}
+.agent-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+.agent-card.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(79,140,255,0.3), 0 4px 16px rgba(79,140,255,0.15);
+}
+.agent-card.working {
+    border-color: var(--success);
+}
+.agent-card.thinking {
+    border-color: var(--accent);
+}
+.agent-bubble {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    margin-bottom: 14px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text);
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    word-break: keep-all;
+}
+.agent-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 7px solid transparent;
+    border-top-color: var(--bg-card);
+    border-bottom: 0;
+}
+.agent-office {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 8px 0 6px;
+    position: relative;
+}
+.agent-person {
+    font-size: 44px;
+    line-height: 1;
+    margin-bottom: -6px;
+    z-index: 2;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    transition: transform 0.3s ease;
+}
+.agent-card.working .agent-person {
+    animation: agent-typing 0.6s steps(2) infinite;
+}
+.agent-card.thinking .agent-person {
+    animation: agent-think 2s ease-in-out infinite;
+}
+@keyframes agent-typing {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+}
+@keyframes agent-think {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-3deg); }
+    75% { transform: rotate(3deg); }
+}
+.agent-workspace {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+.agent-monitor {
+    font-size: 28px;
+    line-height: 1;
+    margin-bottom: -2px;
+    z-index: 1;
+    position: relative;
+}
+/* 작업 중 모니터 글로우 효과 */
+.agent-card.working .agent-monitor::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    background: radial-gradient(ellipse, rgba(46,204,113,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    z-index: -1;
+}
+.agent-card.thinking .agent-monitor::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    background: radial-gradient(ellipse, rgba(99,102,241,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    z-index: -1;
+}
+.agent-desk-surface {
+    width: 80%;
+    height: 6px;
+    background: linear-gradient(180deg, #5a4a3a 0%, #3d3228 100%);
+    border-radius: 3px 3px 0 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    margin-top: 2px;
+}
+.agent-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dim);
+    margin-top: 4px;
+}
+.agent-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 6px;
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.status-dot.working {
+    background: var(--success);
+    animation: pulse 1.5s infinite;
+}
+.status-dot.thinking {
+    background: var(--accent);
+    animation: pulse 1s infinite;
+}
+.status-dot.idle {
+    background: var(--text-dim);
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* 라이브 로그 뷰 */
+.live-log-container {
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+    z-index: 2;
+}
+.live-log-container.ansi-mode {
+    background: #1a1a2e;
+}
+.live-log-scroll {
+    height: 100%;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 12px;
+}
+.live-log-container .log-content {
+    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text);
+    min-width: 0;
+}
+.live-log-container.ansi-mode .log-content {
+    font-size: 13px;
+    line-height: 1.35;
+    white-space: pre;
+    overflow-x: auto;
+    color: #e0e0e0;
+    cursor: text;
+    user-select: text;
+    -webkit-user-select: text;
+    padding-bottom: 40px;
+}
+.live-log-container.ansi-mode .log-content span {
+    white-space: pre;
+}
+
+/* 패널 활성: 터미널 상단 + 에이전트 카드 하단 분할 */
+.terminal-area.panes-active {
+    display: flex;
+    flex-direction: column;
+}
+.terminal-area.panes-active > .terminal-container,
+.terminal-area.panes-active > .live-log-container {
+    position: relative !important;
+    inset: auto;
+    flex: 1;
+    min-height: 0;
+}
+.terminal-area.panes-active > .panes-grid {
+    position: relative;
+    inset: auto;
+    flex: 0 0 auto;
+    max-height: 45%;
+    min-height: 200px;
+    border-top: 1px solid var(--border);
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 12px 16px;
+    gap: 12px;
+    z-index: 3;
+    pointer-events: auto;
+}
+.terminal-area.panes-active > .terminal-container {
+    overflow: hidden;
+}
+.terminal-area.panes-active .agent-card {
+    width: 180px;
+    min-width: 180px;
+    padding: 14px;
+    flex-shrink: 0;
+}
+.terminal-area.panes-active .agent-bubble {
+    min-height: 32px;
+    font-size: 11px;
+    padding: 6px 8px;
+    margin-bottom: 10px;
+}
+.terminal-area.panes-active .agent-person {
+    font-size: 32px;
+}
+.terminal-area.panes-active .agent-monitor {
+    font-size: 22px;
+}
+
+/* 카드 전용 모드: 에이전트 카드만 전체 화면 */
+.terminal-area.panes-cards-only {
+    display: flex;
+    flex-direction: column;
+}
+.terminal-area.panes-cards-only > .terminal-container,
+.terminal-area.panes-cards-only > .live-log-container {
+    display: none !important;
+}
+.terminal-area.panes-cards-only > .panes-grid {
+    position: relative;
+    inset: auto;
+    flex: 1;
+    flex-wrap: wrap;
+    overflow: auto;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    padding: 24px;
+    gap: 20px;
+    z-index: 3;
+    pointer-events: auto;
+}
+
+/* WebSocket 재연결 오버레이 */
+.ws-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(26, 26, 46, 0.85);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: var(--text-dim);
+    font-size: 14px;
+    z-index: 5;
+}
+.ws-overlay-spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
