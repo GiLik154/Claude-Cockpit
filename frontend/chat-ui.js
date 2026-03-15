@@ -2,19 +2,27 @@
 (function() {
     var App = window.ChatApp;
 
-    App.showStatus = function(msg, isSuccess) {
+    App.showStatus = function(msg, isSuccess, duration) {
         var el = document.getElementById('statusMsg');
         if (!el) {
             el = document.createElement('div');
             el.id = 'statusMsg';
-            el.style.cssText = 'position:fixed;top:50px;left:50%;transform:translateX(-50%);color:#fff;padding:8px 20px;border-radius:20px;font-size:12px;z-index:200;max-width:90vw;pointer-events:none;';
+            el.style.cssText = 'position:fixed;top:50px;left:50%;transform:translateX(-50%);color:#fff;padding:8px 20px;border-radius:20px;font-size:12px;z-index:200;max-width:90vw;cursor:pointer;';
+            el.addEventListener('click', function() { el.style.display = 'none'; });
             document.body.appendChild(el);
         }
         el.textContent = msg;
-        el.style.background = isSuccess ? 'rgba(46,204,113,0.9)' : 'rgba(231,76,60,0.9)';
+        if (isSuccess) {
+            el.style.background = 'rgba(46,204,113,0.9)';
+            el.style.pointerEvents = 'none';
+        } else {
+            el.style.background = 'rgba(231,76,60,0.9)';
+            el.style.pointerEvents = 'auto';
+        }
         el.style.display = 'block';
         clearTimeout(App._statusTimer);
-        App._statusTimer = setTimeout(function() { el.style.display = 'none'; }, App.STATUS_DISPLAY_DURATION_MS);
+        var ms = duration || (isSuccess ? 2000 : 5000);
+        App._statusTimer = setTimeout(function() { el.style.display = 'none'; }, ms);
     };
 
     App.toggleSidebar = function() {
