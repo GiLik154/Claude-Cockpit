@@ -1,4 +1,4 @@
-/* 그룹 — 사이드바, 그리드 뷰, 모달 */
+/* 그룹 — 사이드바, 그리드 뷰, 모달, 온보딩 */
 
 /* --- 사이드바 섹션 --- */
 .sidebar-section-header {
@@ -29,6 +29,7 @@
     transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
     padding: 0;
     line-height: 1;
+    -webkit-tap-highlight-color: transparent;
 }
 .sidebar-section-header .btn-add-group:hover {
     color: var(--accent);
@@ -49,15 +50,16 @@
 
 /* --- 그룹 아이템 --- */
 .group-item {
-    padding: 8px 12px;
+    padding: 10px 12px;
     border-radius: var(--radius-md);
     cursor: pointer;
     margin-bottom: 3px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    transition: background var(--transition-fast);
+    transition: background var(--transition-fast), border-color var(--transition-fast);
     border-left: 3px solid transparent;
+    -webkit-tap-highlight-color: transparent;
 }
 .group-item:hover {
     background: var(--bg-hover);
@@ -94,6 +96,7 @@
     font-size: 10px;
     color: var(--text-dim);
     background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 4px;
     padding: 1px 6px;
     white-space: nowrap;
@@ -116,10 +119,11 @@
     color: var(--text-dim);
     cursor: pointer;
     font-size: 14px;
-    padding: 2px 6px;
+    padding: 4px 8px;
     border-radius: var(--radius-sm);
     transition: color var(--transition-fast), background var(--transition-fast);
     line-height: 1;
+    -webkit-tap-highlight-color: transparent;
 }
 .group-actions .edit-btn:hover,
 .group-actions .delete-btn:hover {
@@ -148,11 +152,14 @@
     flex-direction: column;
     min-height: 0;
     border: 2px solid var(--border);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-md);
     overflow: hidden;
     background: var(--bg);
     cursor: pointer;
     transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.group-grid-cell:hover {
+    border-color: var(--border-light);
 }
 .group-grid-cell.focused {
     border-color: var(--accent);
@@ -160,23 +167,26 @@
 }
 .group-grid-cell.focused .group-cell-header {
     background: rgba(79, 140, 255, 0.12);
+    border-bottom-color: rgba(79, 140, 255, 0.3);
 }
 .group-cell-header {
-    padding: 5px 10px;
+    padding: 6px 12px;
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     font-size: 11px;
     flex-shrink: 0;
+    transition: background var(--transition-fast);
 }
 .group-grid-cell:hover .group-cell-header {
     background: var(--bg-hover);
 }
 .group-cell-role {
     color: var(--accent);
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 11px;
 }
 .group-cell-name {
     color: var(--text-dim);
@@ -185,6 +195,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-size: 11px;
 }
 .group-cell-terminal {
     flex: 1;
@@ -235,8 +246,8 @@
     border-radius: var(--radius-sm);
     color: var(--danger);
     font-size: 16px;
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -244,6 +255,7 @@
     flex-shrink: 0;
     transition: background var(--transition-fast), border-color var(--transition-fast);
     line-height: 1;
+    -webkit-tap-highlight-color: transparent;
 }
 .btn-remove-member:hover {
     background: rgba(231, 76, 60, 0.1);
@@ -258,11 +270,42 @@
 .input-bar.broadcast-mode {
     border-top: 2px solid var(--accent);
 }
-.broadcast-indicator {
-    font-size: 10px;
+
+/* --- 온보딩 그룹 프리뷰 --- */
+.mode-preview-group-broadcast,
+.mode-preview-group-focus {
+    display: flex;
+    flex-direction: column;
+}
+.preview-group-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 8px;
+    background: var(--bg);
+}
+.preview-group-cell {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60px;
+    transition: border-color 0.2s, opacity 0.2s;
+}
+.preview-group-cell.focused {
+    border-color: var(--accent);
+    box-shadow: 0 0 8px rgba(79, 140, 255, 0.2);
+}
+.preview-group-cell.dimmed {
+    opacity: 0.4;
+}
+.preview-group-role {
+    font-size: 14px;
+    font-weight: 700;
     color: var(--accent);
-    padding: 0 4px 4px;
-    text-align: center;
 }
 
 /* --- 반응형 --- */
@@ -270,27 +313,58 @@
     .group-grid {
         grid-template-columns: 1fr !important;
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
     .group-grid-cell {
-        min-height: 200px;
+        min-height: 220px;
     }
     .group-cell-header {
-        padding: 8px 12px;
-        font-size: 12px;
-        min-height: 36px;
+        padding: 10px 14px;
+        font-size: 13px;
+        min-height: 44px;
         -webkit-tap-highlight-color: transparent;
     }
     .group-member-row {
         flex-wrap: wrap;
     }
+    .group-member-row .member-session-select {
+        flex: 1 1 100%;
+    }
     .group-member-row .member-role-input {
-        width: 100%;
+        flex: 1;
+        width: auto;
     }
     .group-actions {
         opacity: 1;
     }
+    .group-actions .edit-btn,
+    .group-actions .delete-btn {
+        font-size: 18px;
+        padding: 6px 10px;
+        min-width: 40px;
+        min-height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
     .group-item {
-        padding: 12px;
-        min-height: 48px;
+        padding: 14px;
+        min-height: 52px;
+    }
+    .group-name {
+        font-size: 14px;
+    }
+    .sidebar-section-header .btn-add-group {
+        width: 32px;
+        height: 32px;
+        font-size: 18px;
+    }
+    .btn-remove-member {
+        width: 44px;
+        height: 44px;
+        font-size: 20px;
+    }
+    .preview-group-cell {
+        min-height: 40px;
     }
 }
