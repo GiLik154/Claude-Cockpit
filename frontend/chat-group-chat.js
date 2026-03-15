@@ -1,41 +1,18 @@
-// 그룹 채팅 모드: 멤버별 출력을 채팅 버블로 표시
+// 그룹 채팅 모드: 에이전트 카드 스타일 대화 타임라인
 (function() {
     var App = window.ChatApp;
 
-    var ROLE_EMOJIS = {
-        '프론트엔드': '🎨', 'frontend': '🎨', 'fe': '🎨',
-        '백엔드': '⚙️', 'backend': '⚙️', 'be': '⚙️',
-        'api': '🔌', 'API': '🔌',
-        '테스트': '🧪', 'test': '🧪', 'qa': '🧪',
-        '디자인': '🖌️', 'design': '🖌️', 'ui': '🖌️', 'ux': '🖌️',
-        '인프라': '🏗️', 'infra': '🏗️', 'devops': '🏗️',
-        '데이터': '📊', 'data': '📊', 'db': '📊',
-        '보안': '🔒', 'security': '🔒',
-        '리더': '👑', 'leader': '👑', 'pm': '👑',
-        '코드리뷰': '🔍', 'review': '🔍',
-    };
-
-    function getEmoji(role, idx) {
-        if (!role) return App.AGENT_AVATARS[idx % App.AGENT_AVATARS.length];
-        var lower = role.toLowerCase();
-        for (var key in ROLE_EMOJIS) {
-            if (lower.includes(key)) return ROLE_EMOJIS[key];
-        }
-        return App.AGENT_AVATARS[idx % App.AGENT_AVATARS.length];
-    }
-
     // 채팅 뷰 초기화
     App.initGroupChat = function(group) {
-        App._groupChatState = { members: {}, messages: [] };
+        App._groupChatState = { members: {}, lastMessages: {} };
 
         group.members.forEach(function(m, idx) {
             if (!m.exists) return;
             App._groupChatState.members[m.session_id] = {
                 lastHash: '',
-                lastEntryCount: 0,
                 role: m.role || m.name,
-                emoji: getEmoji(m.role, idx),
-                color: _memberColor(idx),
+                avatar: App.AGENT_AVATARS[idx % App.AGENT_AVATARS.length],
+                idx: idx,
             };
         });
 
@@ -47,19 +24,57 @@
         container = document.createElement('div');
         container.id = 'groupChatContainer';
         container.className = 'group-chat-container';
-        container.innerHTML =
-            '<div class="group-chat-scroll" id="groupChatScroll">' +
-                '<div class="group-chat-messages" id="groupChatMessages"></div>' +
-            '</div>';
+
+        var scroll = document.createElement('div');
+        scroll.id = 'groupChatScroll';
+        scroll.className = 'group-chat-scroll';
+
+        var grid = document.createElement('div');
+        grid.id = 'groupChatGrid';
+        grid.className = 'group-chat-grid';
+
+        // 멤버별 카드 생성
+        group.members.forEach(function(m, idx) {
+            if (!m.exists) return;
+            var mem = App._groupChatState.members[m.session_id];
+
+            var card = document.createElement('div');
+            card.className = 'gc-card';
+            card.id = 'gc-card-' + m.session_id;
+            card.setAttribute('data-session-id', m.session_id);
+
+            card.innerHTML =
+                '<div class="gc-bubble" id="gc-bubble-' + m.session_id + '">대기 중...</div>' +
+                '<div class="gc-character">' +
+                    '<div class="gc-person">' + mem.avatar + '</div>' +
+                    '<div class="gc-workspace">' +
+                        '<span class="gc-monitor">🖥️</span>' +
+                        '<div class="gc-desk"></div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="gc-name">' + App.esc(mem.role) + '</div>' +
+                '<div class="gc-status"><span class="gc-dot idle" id="gc-dot-' + m.session_id + '"></span><span id="gc-stxt-' + m.session_id + '">대기</span></div>';
+
+            // 클릭 시 포커스
+            (function(sid, role) {
+                card.addEventListener('click', function() {
+                    if (App.groupFocusedSession === sid) {
+                        App.unfocusGroupCell();
+                    } else {
+                        App.focusGroupCell(sid, role);
+                    }
+                });
+            })(m.session_id, m.role);
+
+            grid.appendChild(card);
+        });
+
+        scroll.appendChild(grid);
+        container.appendChild(scroll);
         area.appendChild(container);
     };
 
-    function _memberColor(idx) {
-        var colors = ['#4f8cff', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6', '#1abc9c', '#e67e22', '#3498db'];
-        return colors[idx % colors.length];
-    }
-
-    // 폴링 시작/중지
+    // 폴링
     App.startGroupChatPolling = function() {
         App.stopGroupChatPolling();
         App.refreshGroupChat();
@@ -72,7 +87,7 @@
         App._refreshGroupChatRunning = false;
     };
 
-    // 각 멤버 순차 캡처 → 파싱 → 새 메시지 추출
+    // 각 멤버 순차 캡처 → 상태 추출 → 카드 업데이트
     App.refreshGroupChat = function() {
         if (!App.currentGroup || App.groupViewMode !== 'chat' || App._refreshGroupChatRunning) return;
         App._refreshGroupChatRunning = true;
@@ -81,13 +96,9 @@
         if (!state) { App._refreshGroupChatRunning = false; return; }
 
         var sids = Object.keys(state.members);
-        var newMessages = [];
 
         var processNext = function(idx) {
             if (idx >= sids.length) {
-                if (newMessages.length > 0) {
-                    App._appendChatMessages(newMessages);
-                }
                 App._refreshGroupChatRunning = false;
                 return;
             }
@@ -95,36 +106,29 @@
             var sid = sids[idx];
             var mem = state.members[sid];
 
-            fetch('/api/sessions/' + sid + '/capture?lines=500')
+            fetch('/api/sessions/' + sid + '/capture?lines=50')
                 .then(function(res) { return res.ok ? res.text() : ''; })
                 .then(function(text) {
-                    var hash = text.length + ':' + text.slice(-300);
+                    var hash = text.length + ':' + text.slice(-200);
                     if (hash === mem.lastHash) return;
                     mem.lastHash = hash;
 
-                    var entries = App.parseEntries(text);
-                    var prevCount = mem.lastEntryCount;
+                    // 상태 추출 (panes의 extractStatus 재활용)
+                    var status = App.extractStatus(text);
 
-                    // 새 엔트리만 추출
-                    if (entries.length > prevCount) {
-                        var newEntries = entries.slice(prevCount);
-                        newEntries.forEach(function(e) {
-                            // thinking은 마지막 것만 유지 (중복 방지)
-                            if (e.type === 'thinking') return;
-                            newMessages.push({
-                                sessionId: sid,
-                                role: mem.role,
-                                emoji: mem.emoji,
-                                color: mem.color,
-                                type: e.type,
-                                text: e.text || '',
-                                toolName: e.name || '',
-                                toolResult: e.result || '',
-                                ts: Date.now() + idx, // 순서 보존
-                            });
-                        });
-                    }
-                    mem.lastEntryCount = entries.length;
+                    // 마지막 의미 있는 메시지 추출
+                    var lastMsg = _extractLastMessage(text);
+
+                    // 카드 업데이트
+                    var card = document.getElementById('gc-card-' + sid);
+                    var bubble = document.getElementById('gc-bubble-' + sid);
+                    var dot = document.getElementById('gc-dot-' + sid);
+                    var stxt = document.getElementById('gc-stxt-' + sid);
+
+                    if (bubble) bubble.textContent = lastMsg || status.t;
+                    if (dot) dot.className = 'gc-dot ' + status.s;
+                    if (stxt) stxt.textContent = status.s === 'working' ? '작업 중' : status.s === 'thinking' ? '사고 중' : '대기';
+                    if (card) card.className = 'gc-card ' + status.s + (App.groupFocusedSession === sid ? ' focused' : '');
                 })
                 .catch(function() {})
                 .finally(function() { processNext(idx + 1); });
@@ -133,63 +137,23 @@
         processNext(0);
     };
 
-    // 새 메시지 DOM append + 자동 스크롤
-    App._appendChatMessages = function(msgs) {
-        var container = document.getElementById('groupChatMessages');
-        var scroll = document.getElementById('groupChatScroll');
-        if (!container || !scroll) return;
-
-        var scrollGap = scroll.scrollHeight - scroll.scrollTop - scroll.clientHeight;
-        var wasAtBottom = scrollGap < App.SCROLL_THRESHOLD_PX;
-
-        var lastSid = container.getAttribute('data-last-sid') || '';
-
-        msgs.forEach(function(msg) {
-            var isSameAuthor = (msg.sessionId === lastSid);
-
-            var wrapper = document.createElement('div');
-            wrapper.className = 'chat-msg';
-
-            if (!isSameAuthor) {
-                // 새 저자 헤더
-                var header = document.createElement('div');
-                header.className = 'chat-msg-header';
-                header.innerHTML =
-                    '<span class="chat-avatar">' + msg.emoji + '</span>' +
-                    '<span class="chat-role" style="color:' + msg.color + '">' + App.esc(msg.role) + '</span>';
-                wrapper.appendChild(header);
+    // 터미널 출력에서 마지막 의미 있는 메시지 추출
+    function _extractLastMessage(raw) {
+        var entries = App.parseEntries(raw);
+        // 뒤에서부터 의미 있는 텍스트 찾기
+        for (var i = entries.length - 1; i >= 0; i--) {
+            var e = entries[i];
+            if (e.type === 'text' && e.text && e.text.length > 3) {
+                var msg = e.text.split('\n')[0];
+                if (msg.length > 120) msg = msg.slice(0, 117) + '...';
+                return msg;
             }
-
-            var bubble = document.createElement('div');
-            bubble.className = 'chat-bubble chat-type-' + msg.type;
-
-            if (msg.type === 'user') {
-                bubble.innerHTML = '<span class="chat-prompt">&gt;</span> ' + App.esc(msg.text);
-            } else if (msg.type === 'tool') {
-                var details = document.createElement('details');
-                details.className = 'chat-tool-details';
-                details.innerHTML =
-                    '<summary class="chat-tool-name">' + App.esc(msg.toolName) + '</summary>' +
-                    (msg.toolResult ? '<div class="chat-tool-result">' + App.esc(msg.toolResult) + '</div>' : '');
-                bubble.appendChild(details);
-            } else if (msg.type === 'result') {
-                bubble.classList.add('chat-type-result');
-                bubble.textContent = msg.text;
-            } else {
-                bubble.textContent = msg.text;
+            if (e.type === 'tool') {
+                return '🔧 ' + (e.name || '도구 실행 중');
             }
-
-            wrapper.appendChild(bubble);
-            container.appendChild(wrapper);
-            lastSid = msg.sessionId;
-        });
-
-        container.setAttribute('data-last-sid', lastSid);
-
-        if (wasAtBottom) {
-            scroll.scrollTop = scroll.scrollHeight;
         }
-    };
+        return '';
+    }
 
     // 그리드 ↔ 채팅 토글
     App.toggleGroupViewMode = function() {
@@ -224,7 +188,6 @@
         var grid = document.getElementById('groupGrid');
         if (grid) {
             grid.style.display = '';
-            // 터미널 refit
             var group = App.groups[App.currentGroup];
             if (group) {
                 group.members.forEach(function(m) {
@@ -248,7 +211,7 @@
         }
     }
 
-    // 그룹 뷰 헤더 (토글 바) 생성
+    // 그룹 뷰 헤더 생성
     App.createGroupViewHeader = function(group) {
         var header = document.createElement('div');
         header.id = 'groupViewHeader';
