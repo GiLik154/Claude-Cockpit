@@ -417,11 +417,11 @@
                         else if (p === 24) ul = false;
                         else if (p >= 30 && p <= 37) fg = bold ? b8[p - 30] : c8[p - 30];
                         else if (p === 38 && ps[k + 1] === 5) { k += 2; fg = c256(ps[k]); }
-                        else if (p === 38 && ps[k + 1] === 2) { fg = 'rgb(' + ps[k+2] + ',' + ps[k+3] + ',' + ps[k+4] + ')'; k += 4; }
+                        else if (p === 38 && ps[k + 1] === 2) { var _r=Math.max(0,Math.min(255,ps[k+2]||0)),_g=Math.max(0,Math.min(255,ps[k+3]||0)),_b=Math.max(0,Math.min(255,ps[k+4]||0)); fg = 'rgb(' + _r + ',' + _g + ',' + _b + ')'; k += 4; }
                         else if (p === 39) fg = null;
                         else if (p >= 40 && p <= 47) bg = c8[p - 40];
                         else if (p === 48 && ps[k + 1] === 5) { k += 2; bg = c256(ps[k]); }
-                        else if (p === 48 && ps[k + 1] === 2) { bg = 'rgb(' + ps[k+2] + ',' + ps[k+3] + ',' + ps[k+4] + ')'; k += 4; }
+                        else if (p === 48 && ps[k + 1] === 2) { var _r2=Math.max(0,Math.min(255,ps[k+2]||0)),_g2=Math.max(0,Math.min(255,ps[k+3]||0)),_b2=Math.max(0,Math.min(255,ps[k+4]||0)); bg = 'rgb(' + _r2 + ',' + _g2 + ',' + _b2 + ')'; k += 4; }
                         else if (p === 49) bg = null;
                         else if (p >= 90 && p <= 97) fg = b8[p - 90];
                         else if (p >= 100 && p <= 107) bg = b8[p - 100];

@@ -65,10 +65,19 @@
         } catch (_) {}
     })();
 
+    App.DANGER_PRESETS = { 'skip-permissions': true, 'both': true };
+
+    App.onPresetChange = function() {
+        var preset = document.getElementById('sessionPreset').value;
+        var warn = document.getElementById('presetDangerWarning');
+        if (warn) warn.style.display = App.DANGER_PRESETS[preset] ? 'block' : 'none';
+    };
+
     App.openNewSession = function() {
         document.getElementById('sessionName').value = '';
         document.getElementById('sessionCwd').value = '';
         document.getElementById('newSessionModal').classList.add('active');
+        App.onPresetChange();
     };
 
     App.closeModal = function() {
@@ -202,6 +211,7 @@
     window.toggleSidebar = App.toggleSidebar;
     window.openNewSession = App.openNewSession;
     window.closeModal = App.closeModal;
+    window.onPresetChange = App.onPresetChange;
     window.openTeamModal = App.openTeamModal;
     window.closeTeamModal = App.closeTeamModal;
     window.sendTeamRequest = App.sendTeamRequest;

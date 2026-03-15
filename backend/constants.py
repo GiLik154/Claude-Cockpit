@@ -39,6 +39,20 @@ PTY_POLL_INTERVAL: float = 0.005
 MAX_LOG_TAIL_LINES: int = 10000
 MAX_CAPTURE_LINES: int = 10000
 DEFAULT_SCROLLBACK_LINES: int = 500
+MAX_SESSIONS: int = 20
+MAX_SEND_KEYS_LENGTH: int = 10000
+MAX_WS_MESSAGE_SIZE: int = 102400  # 100KB
+RESIZE_MIN: int = 1
+RESIZE_MAX: int = 500
+
+# 자식 프로세스에서 제거할 민감한 환경변수 접두사
+SENSITIVE_ENV_PREFIXES: tuple = (
+    "CLAUDECODE", "CLAUDE_CODE_ENTRY",
+    "ANTHROPIC_API_KEY", "OPENAI_API_KEY",
+)
+
+# --dangerously-skip-permissions 포함 프리셋
+DANGER_PRESETS: frozenset = frozenset({"skip-permissions", "both"})
 
 # 정규식 패턴
 _VALID_SESSION_ID: re.Pattern[str] = re.compile(r'^[a-zA-Z0-9_-]+$')

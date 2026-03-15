@@ -212,24 +212,28 @@
     App.renderUsageModal = function(data) {
         var content = document.getElementById('usageContent');
         var colorClass = function(pct) { return pct >= 80 ? 'red' : pct >= 50 ? 'yellow' : 'green'; };
+        var safePct = function(v) { var n = parseInt(v, 10); return isNaN(n) ? 0 : Math.max(0, Math.min(100, n)); };
 
         var html = '';
         if (data.session_used != null) {
+            var su = safePct(data.session_used);
             html += '<div class="usage-meter">' +
-                '<div class="usage-meter-label"><span>Session</span><span>' + data.session_used + '% used</span></div>' +
-                '<div class="usage-meter-bar"><div class="usage-meter-fill ' + colorClass(data.session_used) + '" style="width:' + data.session_used + '%"></div></div>' +
+                '<div class="usage-meter-label"><span>Session</span><span>' + su + '% used</span></div>' +
+                '<div class="usage-meter-bar"><div class="usage-meter-fill ' + colorClass(su) + '" style="width:' + su + '%"></div></div>' +
                 '</div>';
         }
         if (data.week_used != null) {
+            var wu = safePct(data.week_used);
             html += '<div class="usage-meter">' +
-                '<div class="usage-meter-label"><span>Week (All Models)</span><span>' + data.week_used + '% used</span></div>' +
-                '<div class="usage-meter-bar"><div class="usage-meter-fill ' + colorClass(data.week_used) + '" style="width:' + data.week_used + '%"></div></div>' +
+                '<div class="usage-meter-label"><span>Week (All Models)</span><span>' + wu + '% used</span></div>' +
+                '<div class="usage-meter-bar"><div class="usage-meter-fill ' + colorClass(wu) + '" style="width:' + wu + '%"></div></div>' +
                 '</div>';
         }
         if (data.sonnet_used != null) {
+            var sou = safePct(data.sonnet_used);
             html += '<div class="usage-meter">' +
-                '<div class="usage-meter-label"><span>Week (Sonnet Only)</span><span>' + data.sonnet_used + '% used</span></div>' +
-                '<div class="usage-meter-bar"><div class="usage-meter-fill ' + colorClass(data.sonnet_used) + '" style="width:' + data.sonnet_used + '%"></div></div>' +
+                '<div class="usage-meter-label"><span>Week (Sonnet Only)</span><span>' + sou + '% used</span></div>' +
+                '<div class="usage-meter-bar"><div class="usage-meter-fill ' + colorClass(sou) + '" style="width:' + sou + '%"></div></div>' +
                 '</div>';
         }
         if (data.resets) {
