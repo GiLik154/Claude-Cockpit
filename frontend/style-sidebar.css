@@ -170,6 +170,14 @@ body.sidebar-resizing * {
     cursor: col-resize !important;
 }
 
+/* 세션 프리셋 아이콘 */
+.preset-icon {
+    font-size: 10px;
+    vertical-align: middle;
+    margin-left: 3px;
+    opacity: 0.7;
+}
+
 /* 세션 위험 모드 뱃지 */
 .danger-badge {
     color: var(--danger);

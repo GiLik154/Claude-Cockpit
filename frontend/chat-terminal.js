@@ -87,7 +87,7 @@
 
         ws.onopen = function() {
             App.showConnectionOverlay(sessionId, false);
-            if (App.currentSession === sessionId) App.showStatus('Connected', true);
+            if (App.currentSession === sessionId) App.showStatus('연결됨', true);
             App.updateSendButton();
             App.flushPendingInput();
             setTimeout(function() {

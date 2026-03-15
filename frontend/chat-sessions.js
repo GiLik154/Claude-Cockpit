@@ -26,6 +26,11 @@
             var wsState = entry && entry.ws ? entry.ws.readyState : null;
             var connected = wsState === WebSocket.OPEN;
             var sid = App.esc(s.session_id);
+            var presetIcons = { 'both': '👥⚡', 'agent-teams': '👥', 'skip-permissions': '⚡', 'default': '' };
+            var presetTitles = { 'both': 'Agent Teams + Skip Permissions', 'agent-teams': 'Agent Teams', 'skip-permissions': 'Skip Permissions', 'default': 'Default' };
+            var preset = s.preset || 'default';
+            var presetIcon = presetIcons[preset] || '';
+            var presetBadge = presetIcon ? ' <span class="preset-icon" title="' + App.esc(presetTitles[preset]) + '">' + presetIcon + '</span>' : '';
             var dangerBadge = s.danger_mode ? ' <span class="danger-badge" title="⚠ Skip Permissions 모드 — Claude가 확인 없이 모든 작업을 수행합니다">&#9888;</span>' : '';
             var connDot = connected
                 ? '<span style="color:var(--success)" title="WebSocket 연결됨">\u25CF</span>'
@@ -33,7 +38,7 @@
             div.className = 'session-item' + (isActive ? ' active' : '');
             div.innerHTML =
                 '<div class="session-info" onclick="switchSession(\'' + sid + '\')">' +
-                    '<div class="name">' + App.esc(s.name) + dangerBadge + ' ' + connDot + '</div>' +
+                    '<div class="name">' + App.esc(s.name) + presetBadge + dangerBadge + ' ' + connDot + '</div>' +
                     '<div class="status ' + (s.alive ? 'alive' : 'dead') + '">' + (s.alive ? 'Running' : 'Stopped') + '</div>' +
                 '</div>' +
                 '<div class="session-actions">' +
@@ -66,12 +71,12 @@
             });
         })
         .catch(function() {
-            App.showStatus('Failed to create session');
+            App.showStatus('세션 생성 실패');
         });
     };
 
     App.deleteSession = function(sessionId) {
-        if (!confirm('Delete this session?')) return;
+        if (!confirm('이 세션을 삭제할까요?')) return;
         fetch('/api/sessions/' + sessionId, { method: 'DELETE' })
             .then(function() {
                 App.cleanupTerminal(sessionId);
@@ -83,7 +88,7 @@
                 App.loadSessions();
             })
             .catch(function() {
-                App.showStatus('Failed to delete session');
+                App.showStatus('세션 삭제 실패');
             });
     };
 
@@ -96,13 +101,13 @@
                 });
             })
             .catch(function() {
-                App.showStatus('Failed to restart session');
+                App.showStatus('세션 재시작 실패');
             });
     };
 
     App.restartCurrent = function() {
-        if (!App.currentSession) { App.showStatus('No session selected'); return; }
-        if (!confirm('Restart this session?')) return;
+        if (!App.currentSession) { App.showStatus('세션을 먼저 선택하세요'); return; }
+        if (!confirm('이 세션을 재시작할까요?')) return;
         App.restartSession(App.currentSession);
         App.showStatus('Restarted', true);
     };

@@ -229,7 +229,7 @@
     };
 
     App.viewLog = function() {
-        if (!App.currentSession) { App.showStatus('No session selected'); return; }
+        if (!App.currentSession) { App.showStatus('세션을 먼저 선택하세요'); return; }
         clearInterval(App.logRefreshTimer);
         App._viewingPaneId = null;
         document.getElementById('copyModal').classList.add('active');
@@ -342,7 +342,7 @@
         if (!el) return;
         var text = el.innerText;
         if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(text).then(function() { App.showStatus('Copied!', true); }).catch(function() { App._fallbackCopy(text); });
+            navigator.clipboard.writeText(text).then(function() { App.showStatus('복사됨!', true); }).catch(function() { App._fallbackCopy(text); });
         } else { App._fallbackCopy(text); }
     };
 
@@ -350,8 +350,8 @@
         var ta = document.createElement('textarea');
         ta.value = text; ta.style.cssText = 'position:fixed;left:-9999px;opacity:0;';
         document.body.appendChild(ta); ta.focus(); ta.select();
-        try { document.execCommand('copy'); App.showStatus('Copied!', true); }
-        catch (_) { App.showStatus('Copy failed'); }
+        try { document.execCommand('copy'); App.showStatus('복사됨!', true); }
+        catch (_) { App.showStatus('복사 실패'); }
         document.body.removeChild(ta);
     };
 
@@ -480,7 +480,7 @@
     };
 
     App.enterLiveView = function() {
-        if (!App.currentSession) { App.showStatus('No session selected'); App.viewMode = 'terminal'; return; }
+        if (!App.currentSession) { App.showStatus('세션을 먼저 선택하세요'); App.viewMode = 'terminal'; return; }
 
         var termEl = document.getElementById('term-' + App.currentSession);
         if (termEl) termEl.style.display = 'none';
