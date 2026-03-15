@@ -231,6 +231,59 @@
     50% { opacity: 0.4; }
 }
 
+/* --- 콘솔 모달 (xterm.js) --- */
+.gc-console-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.gc-console-overlay.active {
+    display: flex;
+}
+.gc-console-modal {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 1000px;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+.gc-console-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+.gc-console-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+.gc-console-close {
+    color: var(--text-dim);
+}
+.gc-console-body {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+}
+.gc-console-body .terminal-container {
+    position: absolute;
+    inset: 0;
+}
+
 /* --- 반응형 --- */
 @media (max-width: 767px) {
     .group-view-header {

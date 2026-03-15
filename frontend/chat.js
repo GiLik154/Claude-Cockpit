@@ -75,6 +75,8 @@
     document.addEventListener('keydown', function(e) {
         // ESC: 열린 모달 닫기 / 그룹 포커스 해제
         if (e.key === 'Escape') {
+            var gcOverlay = document.getElementById('gcConsoleOverlay');
+            if (gcOverlay && gcOverlay.classList.contains('active')) { App.closeGroupConsole(); return; }
             var modals = document.querySelectorAll('.modal-overlay.active');
             if (modals.length) { modals[modals.length - 1].classList.remove('active'); return; }
             if (App.currentGroup && App.groupFocusedSession) { App.unfocusGroupCell(); return; }

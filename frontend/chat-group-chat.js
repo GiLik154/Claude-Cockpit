@@ -240,94 +240,74 @@
         if (header) header.remove();
     };
 
-    // 그룹 세션 콘솔 모달 열기 (로그 뷰어 재활용)
+    // 그룹 세션 콘솔 모달 열기 (실제 xterm.js 터미널)
     App.openGroupSessionLog = function(sessionId, role) {
-        App._groupLogSessionId = sessionId;
-        clearInterval(App.logRefreshTimer);
-        document.getElementById('copyModal').classList.add('active');
+        var t = App.terminals[sessionId];
+        var termEl = document.getElementById('term-' + sessionId);
+        if (!t || !termEl) return;
 
-        // 모달 제목 변경
-        var titleEl = document.querySelector('#copyModal .modal-header-row h3');
-        if (titleEl) titleEl.textContent = (role || 'Session') + ' Console';
+        App._gcConsoleSessionId = sessionId;
+        App._gcConsoleReturnParent = termEl.parentNode;
 
-        // 입력 행 표시
-        var inputRow = document.getElementById('paneInputRow');
-        if (inputRow) {
-            inputRow.style.display = 'flex';
-            document.getElementById('paneInputField').value = '';
+        // 모달 생성
+        var overlay = document.getElementById('gcConsoleOverlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'gcConsoleOverlay';
+            overlay.className = 'gc-console-overlay';
+            overlay.innerHTML =
+                '<div class="gc-console-modal">' +
+                    '<div class="gc-console-header">' +
+                        '<span class="gc-console-title"></span>' +
+                        '<button class="btn btn-sm gc-console-close">Close</button>' +
+                    '</div>' +
+                    '<div class="gc-console-body"></div>' +
+                '</div>';
+            document.body.appendChild(overlay);
+
+            // 오버레이 클릭으로 닫기
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) App.closeGroupConsole();
+            });
+            overlay.querySelector('.gc-console-close').addEventListener('click', App.closeGroupConsole);
         }
 
-        App.lastLogHash = '';
-        var div = App.initLogDiv();
-        div.innerHTML = '';
+        overlay.querySelector('.gc-console-title').textContent = (role || 'Session') + ' Console';
+        var body = overlay.querySelector('.gc-console-body');
+        body.innerHTML = '';
 
-        var refresh = function() {
-            if (!App._groupLogSessionId) return;
-            fetch('/api/sessions/' + App._groupLogSessionId + '/capture?lines=2000')
-                .then(function(res) { return res.ok ? res.text() : ''; })
-                .then(function(text) {
-                    var hash = text.length + ':' + text.slice(-300);
-                    if (hash === App.lastLogHash) return;
-                    App.lastLogHash = hash;
-                    var container = document.getElementById('logTerminal');
-                    var scrollGap = container.scrollHeight - container.scrollTop - container.clientHeight;
-                    var wasAtBottom = scrollGap < App.SCROLL_THRESHOLD_PX;
-                    var prevScrollTop = container.scrollTop;
+        // 터미널을 모달로 이동
+        termEl.style.display = 'block';
+        body.appendChild(termEl);
+        overlay.classList.add('active');
 
-                    var detailsState = App._saveDetailsState(div);
-                    div.innerHTML = App.parseLogToHtml(text);
-                    App._restoreDetailsState(div, detailsState);
+        // 리사이즈
+        setTimeout(function() { App.safeFit(t.fitAddon); }, 50);
+    };
 
-                    if (wasAtBottom) {
-                        container.scrollTop = container.scrollHeight;
-                    } else {
-                        container.scrollTop = prevScrollTop;
-                    }
-                })
-                .catch(function() {});
-        };
+    App.closeGroupConsole = function() {
+        var overlay = document.getElementById('gcConsoleOverlay');
+        if (overlay) overlay.classList.remove('active');
 
-        refresh();
-        App.logRefreshTimer = setInterval(refresh, App.LOG_REFRESH_INTERVAL_MS);
+        var sid = App._gcConsoleSessionId;
+        if (!sid) return;
 
-        // pane 입력을 이 세션으로 리다이렉트
-        App._viewingPaneId = null; // pane이 아니라 세션 전체
-        App._groupLogSendOverride = function() {
-            var field = document.getElementById('paneInputField');
-            var text = field.value.trim();
-            if (!text) return;
-            var t = App.terminals[sessionId];
-            if (t && t.ws && t.ws.readyState === WebSocket.OPEN) {
-                t.ws.send(JSON.stringify({ type: 'input', data: text + '\r' }));
-                field.value = '';
-                App.showStatus('전송됨', true);
-            } else {
-                App.showStatus('세션이 연결되지 않았습니다');
+        var termEl = document.getElementById('term-' + sid);
+        var returnTo = App._gcConsoleReturnParent;
+
+        if (termEl && returnTo) {
+            // 그리드 셀이면 보이게, 아니면 숨기기
+            var inGrid = returnTo.closest('.group-grid-cell');
+            termEl.style.display = inGrid ? 'block' : 'none';
+            returnTo.appendChild(termEl);
+            if (App.terminals[sid]) {
+                setTimeout(function() { App.safeFit(App.terminals[sid].fitAddon); }, 50);
             }
-        };
-    };
-
-    // sendPaneCommand 오버라이드: 그룹 로그 모드일 때 직접 전송
-    var _origSendPaneCommand = App.sendPaneCommand;
-    App.sendPaneCommand = function() {
-        if (App._groupLogSendOverride) {
-            App._groupLogSendOverride();
-            return;
         }
-        _origSendPaneCommand();
-    };
 
-    // closeCopyModal 확장: 그룹 로그 상태 정리
-    var _origCloseCopyModal = App.closeCopyModal;
-    App.closeCopyModal = function() {
-        App._groupLogSessionId = null;
-        App._groupLogSendOverride = null;
-        // 제목 복원
-        var titleEl = document.querySelector('#copyModal .modal-header-row h3');
-        if (titleEl) titleEl.textContent = 'Terminal Log';
-        _origCloseCopyModal();
+        App._gcConsoleSessionId = null;
+        App._gcConsoleReturnParent = null;
     };
-    window.closeCopyModal = App.closeCopyModal;
 
     window.toggleGroupViewMode = App.toggleGroupViewMode;
 })();
