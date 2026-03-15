@@ -8,14 +8,14 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Claude Web Console</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.min.css" integrity="sha384-tStR1zLfWgsiXCF3IgfB3lBa8KmBe/lG287CL9WCeKgQYcp1bjb4/+mwN6oti4Co" crossorigin="anonymous">
-    <link rel="stylesheet" href="/static/style.css?v=2">
-    <link rel="stylesheet" href="/static/style-layout.css?v=2">
-    <link rel="stylesheet" href="/static/style-sidebar.css?v=2">
-    <link rel="stylesheet" href="/static/style-terminal.css?v=2">
-    <link rel="stylesheet" href="/static/style-modal.css?v=2">
-    <link rel="stylesheet" href="/static/style-input.css?v=2">
-    <link rel="stylesheet" href="/static/style-components.css?v=2">
-    <link rel="stylesheet" href="/static/style-responsive.css?v=2">
+    <link rel="stylesheet" href="/static/style.css?v=3">
+    <link rel="stylesheet" href="/static/style-layout.css?v=3">
+    <link rel="stylesheet" href="/static/style-sidebar.css?v=3">
+    <link rel="stylesheet" href="/static/style-terminal.css?v=3">
+    <link rel="stylesheet" href="/static/style-modal.css?v=3">
+    <link rel="stylesheet" href="/static/style-input.css?v=3">
+    <link rel="stylesheet" href="/static/style-components.css?v=3">
+    <link rel="stylesheet" href="/static/style-responsive.css?v=3">
 </head>
 <body>
     <header class="header" role="banner">
@@ -23,9 +23,9 @@
             <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">&#9776;</button>
             <h1 onclick="goHome()" style="cursor:pointer">Claude Cockpit</h1>
         </div>
-        <button class="usage-badge" id="usageBadge" onclick="fetchUsage()" title="Click to refresh usage" aria-label="View usage">Usage</button>
-        <button class="btn btn-sm btn-restart-all" onclick="restartAllSessions()" title="모든 세션 재시작" aria-label="Restart all sessions">↻ All</button>
-        <button class="btn btn-primary btn-sm" onclick="openNewSession()" aria-label="Create new session">+ New</button>
+        <button class="usage-badge" id="usageBadge" onclick="fetchUsage()" title="토큰 사용량 확인 (클릭하여 새로고침)" aria-label="View usage">Usage</button>
+        <button class="btn btn-sm btn-restart-all" onclick="restartAllSessions()" title="실행 중인 모든 세션을 재시작합니다" aria-label="Restart all sessions">↻ All</button>
+        <button class="btn btn-primary btn-sm" onclick="openNewSession()" title="새 Claude CLI 세션 생성" aria-label="Create new session">+ New</button>
     </header>
 
     <main class="main">
@@ -259,10 +259,10 @@
             <input type="text" id="sessionName" placeholder="e.g. Coding Agent">
             <label for="sessionPreset">Mode</label>
             <select id="sessionPreset" onchange="onPresetChange()">
-                <option value="both">Agent Teams + Skip Permissions</option>
+                <option value="default">Default</option>
                 <option value="agent-teams">Agent Teams Only</option>
                 <option value="skip-permissions">Skip Permissions Only</option>
-                <option value="default">Default</option>
+                <option value="both">Agent Teams + Skip Permissions</option>
             </select>
             <div class="preset-danger-warning" id="presetDangerWarning">
                 <strong>&#9888; Skip Permissions 모드</strong>
@@ -281,14 +281,14 @@
     <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.min.js" integrity="sha384-XGqKrV8Jrukp1NITJbOEHwg01tNkuXr6uB6YEj69ebpYU3v7FvoGgEg23C1Gcehk" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-web-links@0.11.0/lib/addon-web-links.min.js" integrity="sha384-S1biLeI8L/bFduIVvCxbn/l4EtaG4nTqQjGF7qCYTbsGXGFe8KgIKXtw4+UWxprv" crossorigin="anonymous"></script>
     <!-- 앱 모듈: 로드 순서 중요 (core → features → sessions/terminal → init) -->
-    <script src="/static/chat-core.js?v=2"></script>
-    <script src="/static/chat-ui.js?v=2"></script>
-    <script src="/static/chat-log.js?v=2"></script>
-    <script src="/static/chat-usage.js?v=2"></script>
-    <script src="/static/chat-input.js?v=2"></script>
-    <script src="/static/chat-panes.js?v=2"></script>
-    <script src="/static/chat-sessions.js?v=2"></script>
-    <script src="/static/chat-terminal.js?v=2"></script>
-    <script src="/static/chat.js?v=2"></script>
+    <script src="/static/chat-core.js?v=3"></script>
+    <script src="/static/chat-ui.js?v=3"></script>
+    <script src="/static/chat-log.js?v=3"></script>
+    <script src="/static/chat-usage.js?v=3"></script>
+    <script src="/static/chat-input.js?v=3"></script>
+    <script src="/static/chat-panes.js?v=3"></script>
+    <script src="/static/chat-sessions.js?v=3"></script>
+    <script src="/static/chat-terminal.js?v=3"></script>
+    <script src="/static/chat.js?v=3"></script>
 </body>
 </html>

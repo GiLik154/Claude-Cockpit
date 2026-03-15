@@ -1,19 +1,23 @@
 /* 버튼, 뱃지, 스크롤바, 접근성 */
 .usage-badge {
-    display: inline-block;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    background: var(--bg-card);
-    padding: 3px 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid rgba(79, 140, 255, 0.35);
+    border-radius: 16px;
+    background: rgba(79, 140, 255, 0.1);
+    padding: 5px 12px;
     font-family: inherit;
-    font-size: 11px;
+    font-size: 12px;
+    font-weight: 500;
     font-variant-numeric: tabular-nums;
-    color: var(--text-dim);
+    color: var(--accent);
     white-space: nowrap;
     cursor: pointer;
-    transition: border-color var(--transition-fast);
+    transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
 }
 .usage-badge:hover {
+    background: rgba(79, 140, 255, 0.18);
     border-color: var(--accent);
 }
 .usage-badge:active {
@@ -54,15 +58,17 @@
     border-color: var(--accent-active);
 }
 .btn-sm {
-    padding: 6px 14px;
-    font-size: 12px;
+    padding: 7px 16px;
+    font-size: 13px;
 }
 .btn-restart-all {
-    border-color: var(--warning);
+    border-color: rgba(243, 156, 18, 0.45);
+    background: rgba(243, 156, 18, 0.1);
     color: var(--warning);
+    font-weight: 500;
 }
 .btn-restart-all:hover {
-    background: rgba(243, 156, 18, 0.15);
+    background: rgba(243, 156, 18, 0.2);
     border-color: var(--warning);
 }
 
