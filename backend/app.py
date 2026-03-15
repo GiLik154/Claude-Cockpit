@@ -20,6 +20,7 @@ from backend.constants import (
     DEFAULT_SCROLLBACK_LINES,
     FRONTEND_DIR,
     LOGS_DIR,
+    MODEL_OPTIONS,
     PREFIX,
     PRESET_COMMANDS,
     SENSITIVE_ENV_PREFIXES,
@@ -265,8 +266,12 @@ async def _ensure_usage_session() -> None:
     await _recreate_usage_session()
 
 
-def _resolve_preset_cmd(preset: str) -> List[str]:
-    return list(PRESET_COMMANDS.get(preset, PRESET_COMMANDS["default"]))
+def _resolve_preset_cmd(preset: str, model: str = "auto") -> List[str]:
+    cmd = list(PRESET_COMMANDS.get(preset, PRESET_COMMANDS["default"]))
+    model_flag = MODEL_OPTIONS.get(model, "")
+    if model_flag:
+        cmd.extend(["--model", model_flag])
+    return cmd
 
 
 # --- API 라우트 ---

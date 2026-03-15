@@ -34,6 +34,7 @@ async def api_list_sessions() -> List[Dict[str, Any]]:
             "cmd": info.get("cmd", ""),
             "cwd": info.get("cwd", ""),
             "preset": preset,
+            "model": info.get("model", "auto"),
             "alive": tmux_name in alive_sessions,
             "danger_mode": preset in DANGER_PRESETS,
         })
@@ -64,6 +65,7 @@ async def api_create_session(body: Dict[str, Any]) -> Dict[str, Any]:
 
         name = body.get("name", f"Claude {sid}")
         preset = body.get("preset", "default")
+        model = body.get("model", "auto")
         cwd = body.get("cwd") or os.path.expanduser("~")
 
         real_cwd = os.path.realpath(cwd)
@@ -73,7 +75,7 @@ async def api_create_session(body: Dict[str, Any]) -> Dict[str, Any]:
                 detail=f"작업 디렉터리가 존재하지 않습니다: {cwd}",
             )
 
-        cmd = _app._resolve_preset_cmd(preset)
+        cmd = _app._resolve_preset_cmd(preset, model)
 
         tmux_name = f"{PREFIX}{sid}"
         _app.create_tmux_session(tmux_name, cmd, real_cwd)
@@ -83,12 +85,14 @@ async def api_create_session(body: Dict[str, Any]) -> Dict[str, Any]:
             "cmd": " ".join(cmd),
             "cwd": real_cwd,
             "preset": preset,
+            "model": model,
         }
         _app.save_session_meta(meta)
 
     return {
         "session_id": sid,
         "name": name,
+        "model": model,
         "danger_mode": preset in DANGER_PRESETS,
     }
 
@@ -109,7 +113,8 @@ async def api_restart_session(session_id: str) -> Dict[str, bool]:
         _app.kill_tmux_session(tmux_name)
 
         preset = info.get("preset", "default")
-        cmd = _app._resolve_preset_cmd(preset)
+        model = info.get("model", "auto")
+        cmd = _app._resolve_preset_cmd(preset, model)
 
         info["cmd"] = " ".join(cmd)
         _app.save_session_meta(meta)

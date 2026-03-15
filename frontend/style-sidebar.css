@@ -178,6 +178,16 @@ body.sidebar-resizing * {
     opacity: 0.7;
 }
 
+/* 모델 뱃지 */
+.model-badge {
+    font-size: 9px;
+    font-weight: 700;
+    vertical-align: middle;
+    margin-left: 3px;
+    letter-spacing: 0.3px;
+    opacity: 0.9;
+}
+
 /* 세션 위험 모드 뱃지 */
 .danger-badge {
     color: var(--danger);
