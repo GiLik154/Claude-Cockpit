@@ -8,14 +8,14 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Claude Web Console</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.min.css" integrity="sha384-tStR1zLfWgsiXCF3IgfB3lBa8KmBe/lG287CL9WCeKgQYcp1bjb4/+mwN6oti4Co" crossorigin="anonymous">
-    <link rel="stylesheet" href="/static/style.css?v=3">
-    <link rel="stylesheet" href="/static/style-layout.css?v=3">
-    <link rel="stylesheet" href="/static/style-sidebar.css?v=3">
-    <link rel="stylesheet" href="/static/style-terminal.css?v=3">
-    <link rel="stylesheet" href="/static/style-modal.css?v=3">
-    <link rel="stylesheet" href="/static/style-input.css?v=3">
-    <link rel="stylesheet" href="/static/style-components.css?v=3">
-    <link rel="stylesheet" href="/static/style-responsive.css?v=3">
+    <link rel="stylesheet" href="/static/style.css?v=4">
+    <link rel="stylesheet" href="/static/style-layout.css?v=4">
+    <link rel="stylesheet" href="/static/style-sidebar.css?v=4">
+    <link rel="stylesheet" href="/static/style-terminal.css?v=4">
+    <link rel="stylesheet" href="/static/style-modal.css?v=4">
+    <link rel="stylesheet" href="/static/style-input.css?v=4">
+    <link rel="stylesheet" href="/static/style-components.css?v=4">
+    <link rel="stylesheet" href="/static/style-responsive.css?v=4">
 </head>
 <body>
     <header class="header" role="banner">
@@ -239,11 +239,11 @@
             <textarea id="teamTask" rows="4" placeholder="e.g. 프론트엔드와 백엔드를 동시에 리팩토링해줘"></textarea>
             <label for="teamCount">Team Size</label>
             <select id="teamCount">
-                <option value="">Auto</option>
-                <option value="2">2</option>
-                <option value="3" selected>3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
+                <option value="" selected>Auto (Claude가 판단)</option>
+                <option value="2">2명</option>
+                <option value="3">3명</option>
+                <option value="4">4명</option>
+                <option value="5">5명</option>
             </select>
             <div class="modal-actions">
                 <button class="btn" onclick="closeTeamModal()">Cancel</button>
@@ -281,14 +281,14 @@
     <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.min.js" integrity="sha384-XGqKrV8Jrukp1NITJbOEHwg01tNkuXr6uB6YEj69ebpYU3v7FvoGgEg23C1Gcehk" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-web-links@0.11.0/lib/addon-web-links.min.js" integrity="sha384-S1biLeI8L/bFduIVvCxbn/l4EtaG4nTqQjGF7qCYTbsGXGFe8KgIKXtw4+UWxprv" crossorigin="anonymous"></script>
     <!-- 앱 모듈: 로드 순서 중요 (core → features → sessions/terminal → init) -->
-    <script src="/static/chat-core.js?v=3"></script>
-    <script src="/static/chat-ui.js?v=3"></script>
-    <script src="/static/chat-log.js?v=3"></script>
-    <script src="/static/chat-usage.js?v=3"></script>
-    <script src="/static/chat-input.js?v=3"></script>
-    <script src="/static/chat-panes.js?v=3"></script>
-    <script src="/static/chat-sessions.js?v=3"></script>
-    <script src="/static/chat-terminal.js?v=3"></script>
-    <script src="/static/chat.js?v=3"></script>
+    <script src="/static/chat-core.js?v=4"></script>
+    <script src="/static/chat-ui.js?v=4"></script>
+    <script src="/static/chat-log.js?v=4"></script>
+    <script src="/static/chat-usage.js?v=4"></script>
+    <script src="/static/chat-input.js?v=4"></script>
+    <script src="/static/chat-panes.js?v=4"></script>
+    <script src="/static/chat-sessions.js?v=4"></script>
+    <script src="/static/chat-terminal.js?v=4"></script>
+    <script src="/static/chat.js?v=4"></script>
 </body>
 </html>
