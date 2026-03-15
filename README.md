@@ -17,11 +17,12 @@
 
 ## 요구사항
 
-| 항목 | 설명 |
-|------|------|
-| **Python** | 3.10 이상 |
+| 항목 | 설치 방법 |
+|------|----------|
+| **Python 3.10+** | `brew install python3` (macOS) / `apt install python3` (Linux) |
 | **tmux** | `brew install tmux` (macOS) / `apt install tmux` (Linux) |
-| **Claude CLI** | 설치 및 인증 완료 ([설정 가이드](https://docs.anthropic.com/en/docs/claude-code)) |
+| **Node.js** | `brew install node` (macOS) / `apt install nodejs npm` (Linux) |
+| **Claude CLI** | `npm install -g @anthropic-ai/claude-code` 후 `claude` 실행하여 인증 ([설정 가이드](https://docs.anthropic.com/en/docs/claude-code)) |
 
 ## 설치 및 실행
 
