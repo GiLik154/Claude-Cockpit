@@ -46,6 +46,11 @@ RESIZE_MIN: int = 1
 RESIZE_MAX: int = 500
 
 # 자식 프로세스에서 제거할 민감한 환경변수 접두사
+GROUPS_FILE: str = os.path.join(STORAGE_DIR, "groups.json")
+MAX_GROUPS: int = 20
+MAX_GROUP_MEMBERS: int = 10
+MAX_BROADCAST_TEXT_LENGTH: int = 10000
+
 SENSITIVE_ENV_PREFIXES: tuple = (
     "CLAUDECODE", "CLAUDE_CODE_ENTRY",
     "ANTHROPIC_API_KEY", "OPENAI_API_KEY",

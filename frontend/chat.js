@@ -118,8 +118,9 @@
     });
 
     App.loadSessions();
+    App.loadGroups();
 
-    // 주기적 폴링 (헬스체크, 세션 목록, panes, 컨텍스트 사용량)
+    // 주기적 폴링 (헬스체크, 세션 목록, 그룹, panes, 컨텍스트 사용량)
     setInterval(function() {
         App.healthCheck().then(function(ok) {
             if (!ok) return;
@@ -129,6 +130,7 @@
                     if (s.alive && !App.terminals[s.session_id]) App.createTerminal(s.session_id);
                 });
             }).catch(function() {});
+            App.loadGroups();
             App.checkPanes();
             App.pollContextLeft();
         });

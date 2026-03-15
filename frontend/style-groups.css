@@ -1,0 +1,268 @@
+/* 그룹 — 사이드바, 그리드 뷰, 모달 */
+
+/* --- 사이드바 섹션 --- */
+.sidebar-section-header {
+    padding: 10px 16px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.sidebar-section-header span {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-weight: 600;
+}
+.sidebar-section-header .btn-add-group {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-dim);
+    font-size: 14px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+    padding: 0;
+    line-height: 1;
+}
+.sidebar-section-header .btn-add-group:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgba(79, 140, 255, 0.08);
+}
+
+.group-list {
+    padding: 0 8px 4px;
+}
+.group-empty-hint {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: center;
+    padding: 8px 0;
+    opacity: 0.6;
+}
+
+/* --- 그룹 아이템 --- */
+.group-item {
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    margin-bottom: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background var(--transition-fast);
+    border-left: 3px solid transparent;
+}
+.group-item:hover {
+    background: var(--bg-hover);
+}
+.group-item.active {
+    background: rgba(79, 140, 255, 0.12);
+    border-left-color: var(--accent);
+}
+.group-info {
+    flex: 1;
+    min-width: 0;
+}
+.group-name {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text);
+}
+.member-count {
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--text-dim);
+    margin-left: 4px;
+}
+.group-members-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+}
+.group-member-tag {
+    font-size: 10px;
+    color: var(--text-dim);
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 4px;
+    padding: 1px 6px;
+    white-space: nowrap;
+}
+.group-actions {
+    display: flex;
+    gap: 2px;
+    flex-shrink: 0;
+    margin-left: 6px;
+    opacity: 0.4;
+    transition: opacity var(--transition-fast);
+}
+.group-item:hover .group-actions {
+    opacity: 1;
+}
+.group-actions .edit-btn,
+.group-actions .delete-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    transition: color var(--transition-fast), background var(--transition-fast);
+    line-height: 1;
+}
+.group-actions .edit-btn:hover,
+.group-actions .delete-btn:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* --- 구분선 --- */
+.sidebar-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 6px 16px;
+}
+
+/* --- 그룹 그리드 뷰 --- */
+.group-grid {
+    display: grid;
+    gap: 3px;
+    position: absolute;
+    inset: 0;
+    padding: 3px;
+    z-index: 2;
+}
+.group-grid-cell {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: var(--bg);
+}
+.group-cell-header {
+    padding: 5px 10px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    flex-shrink: 0;
+}
+.group-cell-header:hover {
+    background: var(--bg-hover);
+}
+.group-cell-role {
+    color: var(--accent);
+    font-weight: 600;
+}
+.group-cell-name {
+    color: var(--text-dim);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.group-cell-terminal {
+    flex: 1;
+    position: relative;
+    min-height: 0;
+}
+.group-cell-terminal .terminal-container {
+    position: absolute;
+    inset: 0;
+}
+
+/* --- 그룹 모달 --- */
+.group-member-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 240px;
+    overflow-y: auto;
+    padding: 2px 0;
+}
+.group-member-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.group-member-row .member-session-select {
+    flex: 1;
+    min-width: 0;
+}
+.group-member-row .member-role-input {
+    width: 120px;
+    flex-shrink: 0;
+}
+.btn-remove-member {
+    background: none;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    border-radius: var(--radius-sm);
+    color: var(--danger);
+    font-size: 16px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background var(--transition-fast), border-color var(--transition-fast);
+    line-height: 1;
+}
+.btn-remove-member:hover {
+    background: rgba(231, 76, 60, 0.1);
+    border-color: var(--danger);
+}
+#addMemberBtn {
+    align-self: flex-start;
+    margin-top: 4px;
+}
+
+/* --- broadcast 모드 표시 --- */
+.input-bar.broadcast-mode {
+    border-top: 2px solid var(--accent);
+}
+.broadcast-indicator {
+    font-size: 10px;
+    color: var(--accent);
+    padding: 0 4px 4px;
+    text-align: center;
+}
+
+/* --- 반응형 --- */
+@media (max-width: 767px) {
+    .group-grid {
+        grid-template-columns: 1fr !important;
+        overflow-y: auto;
+    }
+    .group-grid-cell {
+        min-height: 200px;
+    }
+    .group-member-row {
+        flex-wrap: wrap;
+    }
+    .group-member-row .member-role-input {
+        width: 100%;
+    }
+    .group-actions {
+        opacity: 1;
+    }
+}

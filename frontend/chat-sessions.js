@@ -148,6 +148,7 @@
     App.switchSession = function(sessionId) {
         // 세션 전환 시 라이브 뷰/panes 모드 해제 + 타이머 정리
         if (App.viewMode !== 'terminal') { App.exitLiveView(); App.viewMode = 'terminal'; App.updateViewModeBtn(); }
+        if (App.currentGroup) App.exitGroupView();
         App._lastDetectedModel = null;
         App.cancelTokenRetry();
         App.setPanesOff();
@@ -176,6 +177,7 @@
         App.refreshUsageBadge();
         App.renderSessionsList();
         App.checkPanes();
+        App.renderGroupsList();
     };
 
     // index.html onclick 핸들러용 전역 노출

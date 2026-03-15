@@ -19,6 +19,7 @@ from backend.constants import (
     ANSI_ESCAPE,
     DEFAULT_SCROLLBACK_LINES,
     FRONTEND_DIR,
+    GROUPS_FILE,
     LOGS_DIR,
     MODEL_OPTIONS,
     PREFIX,
@@ -147,6 +148,19 @@ def load_session_meta() -> Dict[str, Any]:
 def save_session_meta(meta: Dict[str, Any]) -> None:
     os.makedirs(STORAGE_DIR, exist_ok=True)
     with open(SESSIONS_FILE, "w") as f:
+        json.dump(meta, f, indent=2, ensure_ascii=False)
+
+
+def load_group_meta() -> Dict[str, Any]:
+    if os.path.exists(GROUPS_FILE):
+        with open(GROUPS_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+
+def save_group_meta(meta: Dict[str, Any]) -> None:
+    os.makedirs(STORAGE_DIR, exist_ok=True)
+    with open(GROUPS_FILE, "w") as f:
         json.dump(meta, f, indent=2, ensure_ascii=False)
 
 
@@ -299,11 +313,13 @@ async def api_health() -> Dict[str, Any]:
 from backend.sessions import router as _sessions_router  # noqa: E402
 from backend.log import router as _log_router  # noqa: E402
 from backend.usage import router as _usage_router  # noqa: E402
+from backend.groups import router as _groups_router  # noqa: E402
 from backend.websocket import router as _ws_router  # noqa: E402
 
 app.include_router(_sessions_router)
 app.include_router(_log_router)
 app.include_router(_usage_router)
+app.include_router(_groups_router)
 app.include_router(_ws_router)
 
 # 정적 파일 & 인덱스 페이지
