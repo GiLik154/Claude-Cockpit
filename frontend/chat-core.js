@@ -20,6 +20,7 @@
     App.PANE_SCAN_LINES = 20;
     App.STATUS_MSG_TRUNCATE = 50;
 
+    App.DEFAULT_PLACEHOLDER = App.isMobile ? 'Enter 두 번 = 전송' : 'Enter=전송, Shift+Enter=개행 (Alt+1~9 세션전환)';
     App.FONT_FAMILY = "'SF Mono', 'Menlo', 'Consolas', monospace";
     App.TERMINAL_THEME = {
         background: '#1a1a2e',

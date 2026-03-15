@@ -27,6 +27,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         var field = document.getElementById('inputField');
         if (field) {
+            field.placeholder = App.DEFAULT_PLACEHOLDER;
             // 모바일: readonly로 페이지 로드 시 키보드 방지, focus/blur로 토글
             field.addEventListener('focus', function() { field.removeAttribute('readonly'); });
             field.addEventListener('blur', function() { field.setAttribute('readonly', ''); });

@@ -313,7 +313,7 @@
         App._selectedPaneIdx = -1;
         document.querySelectorAll('.agent-card').forEach(function(c) { c.classList.remove('selected'); });
         var field = document.getElementById('inputField');
-        if (field) field.placeholder = App.isMobile ? 'Enter 두 번=전송' : 'Enter=전송, Shift+Enter=개행';
+        if (field) field.placeholder = App.DEFAULT_PLACEHOLDER;
     };
 
     App.cleanupPanes = function() {
