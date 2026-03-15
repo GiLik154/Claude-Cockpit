@@ -166,8 +166,13 @@
         // 그룹 모드
         if (App.currentGroup) {
             btn.disabled = false;
-            btn.textContent = 'Broadcast';
-            if (bar) bar.classList.add('broadcast-mode');
+            if (App.groupFocusedSession) {
+                btn.textContent = 'Send';
+                if (bar) bar.classList.remove('broadcast-mode');
+            } else {
+                btn.textContent = 'Broadcast';
+                if (bar) bar.classList.add('broadcast-mode');
+            }
             return;
         }
         if (bar) bar.classList.remove('broadcast-mode');
