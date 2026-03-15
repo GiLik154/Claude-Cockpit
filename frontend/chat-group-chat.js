@@ -233,7 +233,7 @@
     App.cleanupGroupChat = function() {
         App.stopGroupChatPolling();
         App._groupChatState = null;
-        App.groupViewMode = 'grid';
+        App.groupViewMode = 'chat';
         var chatContainer = document.getElementById('groupChatContainer');
         if (chatContainer) chatContainer.remove();
         var header = document.getElementById('groupViewHeader');

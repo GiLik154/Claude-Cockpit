@@ -167,6 +167,25 @@
         // 그리드 위치를 헤더 아래로
         grid.style.top = '37px';
 
+        // 기본 뷰 모드 적용
+        if (App.groupViewMode === 'chat') {
+            grid.style.display = 'none';
+            App.initGroupChat(group);
+            App.startGroupChatPolling();
+        }
+
+        // 토글 버튼 상태 동기화
+        var toggleBtn = document.getElementById('groupViewToggle');
+        if (toggleBtn) {
+            if (App.groupViewMode === 'chat') {
+                toggleBtn.textContent = '🖥️ Grid';
+                toggleBtn.title = '터미널 그리드로 전환';
+            } else {
+                toggleBtn.textContent = '💬 Chat';
+                toggleBtn.title = '채팅 모드로 전환';
+            }
+        }
+
         // placeholder, 버튼 업데이트
         App._updateGroupPlaceholder();
         App.updateSendButton();
