@@ -86,13 +86,16 @@
 .onboarding-carousel {
     width: 100%;
     position: relative;
-    min-height: 280px;
+    height: 340px;
+    overflow: hidden;
 }
 .onboarding-slide {
     display: none;
     flex-direction: column;
     align-items: center;
     animation: slideFadeIn 0.3s ease;
+    position: absolute;
+    inset: 0;
 }
 .onboarding-slide.active {
     display: flex;
