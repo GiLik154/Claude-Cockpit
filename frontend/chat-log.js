@@ -309,6 +309,7 @@
                     var div = App.initLogDiv();
                     var scrollGap = container.scrollHeight - container.scrollTop - container.clientHeight;
                     var wasAtBottom = scrollGap < App.SCROLL_THRESHOLD_PX;
+                    var prevScrollTop = container.scrollTop;
                     var anchor = wasAtBottom ? null : _findVisibleAnchor(container);
 
                     var detailsState = _saveDetailsState(div);
@@ -318,7 +319,7 @@
                     if (wasAtBottom) {
                         container.scrollTop = container.scrollHeight;
                     } else if (!_restoreScrollAnchor(container, anchor)) {
-                        container.scrollTop = container.scrollHeight;
+                        container.scrollTop = prevScrollTop;
                     }
                 }
             })
@@ -534,6 +535,7 @@
                     var content = document.getElementById('liveLogContent');
                     var scrollGap = scroll.scrollHeight - scroll.scrollTop - scroll.clientHeight;
                     var wasAtBottom = scrollGap < App.SCROLL_THRESHOLD_PX;
+                    var prevScrollTop = scroll.scrollTop;
                     var anchor = wasAtBottom ? null : _findVisibleAnchor(scroll);
 
                     var detailsState = _saveDetailsState(content);
@@ -543,7 +545,7 @@
                     if (wasAtBottom) {
                         scroll.scrollTop = scroll.scrollHeight;
                     } else if (!_restoreScrollAnchor(scroll, anchor)) {
-                        scroll.scrollTop = scroll.scrollHeight;
+                        scroll.scrollTop = prevScrollTop;
                     }
                 }
             })
