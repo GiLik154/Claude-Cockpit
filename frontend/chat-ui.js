@@ -136,10 +136,23 @@
             if (!overlay) {
                 overlay = document.createElement('div');
                 overlay.className = 'ws-overlay';
-                overlay.innerHTML = '<div class="ws-overlay-spinner"></div><div>Reconnecting...</div>';
+                overlay.innerHTML = '<div class="ws-overlay-spinner"></div><div class="ws-overlay-text">재연결 중...</div><div class="ws-overlay-countdown"></div>';
                 container.appendChild(overlay);
             }
-        } else if (overlay) { overlay.remove(); }
+            // 카운트다운 표시
+            var countEl = overlay.querySelector('.ws-overlay-countdown');
+            var secs = Math.ceil(App.RECONNECT_INTERVAL_MS / 1000);
+            if (countEl) countEl.textContent = secs + '초 후 재시도';
+            clearInterval(overlay._countdownTimer);
+            overlay._countdownTimer = setInterval(function() {
+                secs--;
+                if (secs <= 0) secs = Math.ceil(App.RECONNECT_INTERVAL_MS / 1000);
+                if (countEl) countEl.textContent = secs + '초 후 재시도';
+            }, 1000);
+        } else if (overlay) {
+            clearInterval(overlay._countdownTimer);
+            overlay.remove();
+        }
     };
 
     App.updateSendButton = function() {
