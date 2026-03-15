@@ -195,6 +195,17 @@
     position: absolute;
     inset: 0;
 }
+/* 포커스 안 된 셀: 투명 오버레이로 클릭 잡기 */
+.group-cell-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    cursor: pointer;
+}
+/* 포커스된 셀: 오버레이 숨겨서 터미널 직접 조작 가능 */
+.group-grid-cell.focused .group-cell-overlay {
+    display: none;
+}
 
 /* --- 그룹 모달 --- */
 .group-member-editor {
