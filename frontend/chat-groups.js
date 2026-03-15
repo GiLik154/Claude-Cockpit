@@ -105,9 +105,11 @@
                 '<span class="group-cell-role">' + App.esc(m.role || 'Agent') + '</span>' +
                 '<span class="group-cell-name">' + App.esc(m.name) + '</span>' +
                 (m.alive ? '<span style="color:var(--success)">\u25CF</span>' : '<span style="color:var(--danger)">\u25CF</span>');
-            // 셀 헤더 클릭 → 포커스 토글 (개별 전송 모드)
+            cell.appendChild(header);
+
+            // 셀 전체 클릭 → 포커스 토글 (개별 전송 모드)
             (function(sid, role, name) {
-                header.addEventListener('click', function() {
+                cell.addEventListener('click', function() {
                     if (App.groupFocusedSession === sid) {
                         App.unfocusGroupCell();
                     } else {
@@ -115,7 +117,6 @@
                     }
                 });
             })(m.session_id, m.role, m.name);
-            cell.appendChild(header);
 
             var termWrap = document.createElement('div');
             termWrap.className = 'group-cell-terminal';
