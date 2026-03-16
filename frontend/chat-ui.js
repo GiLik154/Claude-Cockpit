@@ -103,7 +103,7 @@
                 if (!items || !items.length) { section.style.display = 'none'; return; }
                 section.style.display = 'block';
                 list.innerHTML = '';
-                items.forEach(function(item) {
+                items.slice(0, 5).forEach(function(item) {
                     var el = document.createElement('div');
                     el.className = 'recent-session-item';
                     var cwdShort = item.cwd || '';
