@@ -32,7 +32,7 @@ git clone https://github.com/GiLik154/Claude-Cockpit.git
 cd Claude-Cockpit
 
 pip install -r requirements.txt
-uvicorn backend.app:app --host 0.0.0.0 --port 8080 --reload
+uvicorn backend.app:app --host 127.0.0.1 --port 8080 --reload
 ```
 
 브라우저에서 **http://localhost:8080** 접속.
@@ -44,15 +44,15 @@ uvicorn backend.app:app --host 0.0.0.0 --port 8080 --reload
 ### 세션 만들기
 
 1. 우측 상단 **+ New** 클릭
-2. 세션 이름, 작업 디렉토리, 프리셋 선택 후 생성
+2. 세션 이름, 작업 디렉토리, 모드(Mode), 모델(Model) 선택 후 생성
 3. 사이드바에서 세션 클릭으로 전환
 
 ![새 세션 생성](docs/06-new-session.png)
 
-### 세션 프리셋
+### 세션 모드
 
-| 프리셋 | 설명 |
-|--------|------|
+| 모드 | 설명 |
+|------|------|
 | Agent Teams + Skip Permissions | 에이전트 팀 + 자동 권한 수락 (기본값) |
 | Agent Teams Only | 에이전트 팀만 (권한 확인 있음) |
 | Skip Permissions Only | 자동 권한 수락만 |
@@ -157,6 +157,6 @@ Agent Teams 프리셋으로 세션을 생성하면 Claude가 여러 에이전트
 - **Claude CLI 인증** — 실행 전 `claude` 명령으로 인증이 완료되어 있어야 합니다
 - **Agent Teams** — `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` 환경변수가 필요하며, CLI 버전에 따라 지원 여부가 다릅니다
 
-## License
+## 라이선스
 
 [MIT](LICENSE)
