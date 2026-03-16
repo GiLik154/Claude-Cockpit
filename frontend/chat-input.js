@@ -12,7 +12,10 @@
 
     App.sendCancel = function() { App.sendToCurrentSession('\x03'); };
     App.sendEsc = function() { App.sendToCurrentSession('\x1b'); };
-    App.sendNumber = function(num) { App.sendToCurrentSession(num + '\r'); };
+    App.sendNumber = function(num) {
+        App.sendToCurrentSession(num);
+        setTimeout(function() { App.sendToCurrentSession('\r'); }, 50);
+    };
     App.sendDelete = function() { App.sendToCurrentSession('\x7f'); };
 
     App.doSend = function() {
