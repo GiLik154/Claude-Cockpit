@@ -238,6 +238,33 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Slide 6: 세션 목록 마크 가이드 -->
+                        <div class="onboarding-slide" data-slide="5">
+                            <h2 class="onboarding-title">세션 목록 마크</h2>
+                            <p class="onboarding-desc">사이드바 세션 항목의 아이콘과 뱃지 의미</p>
+                            <div class="onboarding-feature">
+                                <div class="feature-step">
+                                    <span class="feature-num" style="background:var(--success);font-size:16px">●</span>
+                                    <div class="feature-text"><strong style="color:var(--success)">초록 점</strong> — WebSocket 연결됨 (온라인)</div>
+                                </div>
+                                <div class="feature-step">
+                                    <span class="feature-num" style="background:var(--danger);font-size:16px">●</span>
+                                    <div class="feature-text"><strong style="color:var(--danger)">빨간 점</strong> — 연결 끊김 (오프라인, 재연결 시도 중)</div>
+                                </div>
+                                <div class="feature-step">
+                                    <span class="feature-num" style="background:#c084fc;font-size:10px">Opus</span>
+                                    <div class="feature-text"><strong style="color:#c084fc">모델 뱃지</strong> — <span style="color:#c084fc">Opus</span> · <span style="color:#60a5fa">Sonnet</span> · <span style="color:#34d399">Haiku</span> (Auto는 표시 없음)</div>
+                                </div>
+                                <div class="feature-step">
+                                    <span class="feature-num" style="background:var(--danger);font-size:14px">⚠</span>
+                                    <div class="feature-text"><strong style="color:var(--danger)">⚠ 경고</strong> — Skip Permissions 모드 (확인 없이 모든 작업 수행)</div>
+                                </div>
+                                <div class="feature-step">
+                                    <span class="feature-num" style="background:var(--success);font-size:10px">Run</span>
+                                    <div class="feature-text"><strong>Running</strong> / <strong style="color:var(--text-dim)">Stopped</strong> — 세션 실행 상태 (Stopped 시 ↻ 재시작 버튼 표시)</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <!-- 캐러셀 네비게이션 -->
                     <div class="onboarding-nav">
@@ -248,6 +275,7 @@
                             <span class="onboarding-dot" onclick="onboardingGo(2)"></span>
                             <span class="onboarding-dot" onclick="onboardingGo(3)"></span>
                             <span class="onboarding-dot" onclick="onboardingGo(4)"></span>
+                            <span class="onboarding-dot" onclick="onboardingGo(5)"></span>
                         </div>
                         <button class="onboarding-nav-btn" id="onboardingNext" onclick="onboardingNav(1)">→</button>
                     </div>

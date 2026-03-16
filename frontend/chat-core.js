@@ -2,7 +2,7 @@
 (function() {
     var App = window.ChatApp = window.ChatApp || {};
 
-    App.RECONNECT_INTERVAL_MS = 10000;
+    App.RECONNECT_INTERVAL_MS = 2000;
     App.POLL_INTERVAL_MS = 10000;
     App.LOG_REFRESH_INTERVAL_MS = 3000;
     App.LIVE_LOG_REFRESH_INTERVAL_MS = 1000;

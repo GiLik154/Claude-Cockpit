@@ -257,7 +257,7 @@
 
     // 온보딩 캐러셀
     App._onboardingSlide = 0;
-    var SLIDE_COUNT = 5;
+    var SLIDE_COUNT = 6;
 
     App.onboardingGo = function(idx) {
         if (idx < 0 || idx >= SLIDE_COUNT) return;
