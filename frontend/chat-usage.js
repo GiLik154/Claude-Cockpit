@@ -91,6 +91,9 @@
         var bar = document.getElementById('tokenRetryBar');
         bar.style.display = 'none';
         if (!App.currentSession || !App.terminals[App.currentSession]) return;
+        // 세션 사용량 재확인 — 98% 미만이면 재시도 취소
+        var u = App.sessionUsage[App.currentSession];
+        if (u && u.sessionUsed != null && u.sessionUsed < 98) return;
         var t = App.terminals[App.currentSession];
         if (t.ws && t.ws.readyState === WebSocket.OPEN) {
             if (App.lastSentInput) {

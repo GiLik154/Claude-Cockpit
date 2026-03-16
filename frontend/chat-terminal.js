@@ -108,11 +108,14 @@
                 if (usage) App.updateUsageBadge(sessionId, usage);
                 var waitSecs = App.detectTokenExpiry(p.data);
                 if (waitSecs > 0 && sessionId === App.currentSession) {
-                    // 사용량이 실제로 높을 때만 재시도 (오탐 방지)
+                    // 세션 사용량이 98% 이상일 때만 재시도 (context%는 rate limit과 무관)
                     var u = App.sessionUsage[sessionId];
-                    var contextExhausted = u && u.contextLeft != null && u.contextLeft <= 5;
-                    var sessionExhausted = u && u.sessionUsed != null && u.sessionUsed >= 95;
-                    if (contextExhausted || sessionExhausted || !u || u.contextLeft == null) {
+                    var sessionExhausted = u && u.sessionUsed != null && u.sessionUsed >= 98;
+                    // 재시도 쿨다운: 마지막 재시도 후 60초 이내면 무시
+                    var now = Date.now();
+                    var cooledDown = !App._lastRetryTime || (now - App._lastRetryTime > 60000);
+                    if (sessionExhausted && cooledDown) {
+                        App._lastRetryTime = now;
                         App.startTokenRetry(waitSecs);
                     }
                 }
