@@ -104,23 +104,23 @@
             try { p = JSON.parse(event.data); } catch (_) { return; }
             if (p.type === 'output') {
                 entry.term.write(p.data);
-                var usage = App.parseUsageFromOutput(p.data);
-                if (usage) App.updateUsageBadge(sessionId, usage);
-                var waitSecs = App.detectTokenExpiry(p.data);
-                if (waitSecs > 0 && sessionId === App.currentSession) {
-                    // 세션 사용량이 98% 이상일 때만 재시도 (context%는 rate limit과 무관)
+                if (App.viewMode !== 'terminal' && sessionId === App.currentSession) {
+                    App.scheduleLiveRefresh();
+                }
+            }
+            else if (p.type === 'usage_update') {
+                App.updateUsageBadge(sessionId, p.data);
+            }
+            else if (p.type === 'token_expiry') {
+                if (p.data.seconds > 0 && sessionId === App.currentSession) {
                     var u = App.sessionUsage[sessionId];
                     var sessionExhausted = u && u.sessionUsed != null && u.sessionUsed >= 98;
-                    // 재시도 쿨다운: 마지막 재시도 후 60초 이내면 무시
                     var now = Date.now();
                     var cooledDown = !App._lastRetryTime || (now - App._lastRetryTime > 60000);
                     if (sessionExhausted && cooledDown) {
                         App._lastRetryTime = now;
-                        App.startTokenRetry(waitSecs);
+                        App.startTokenRetry(p.data.seconds);
                     }
-                }
-                if (App.viewMode !== 'terminal' && sessionId === App.currentSession) {
-                    App.scheduleLiveRefresh();
                 }
             }
             else if (p.type === 'exit') entry.term.write('\r\n\x1b[31m[Session ended]\x1b[0m\r\n');

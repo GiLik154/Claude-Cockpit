@@ -2,6 +2,7 @@
 (function() {
     var App = window.ChatApp;
 
+    // NOTE: 백엔드 WebSocket에서 usage_update 메시지로 대체됨. 폴백용으로 유지.
     App.parseUsageFromOutput = function(text) {
         var clean = App.stripAnsi(text);
 
@@ -38,6 +39,7 @@
         return null;
     };
 
+    // NOTE: 백엔드 WebSocket에서 token_expiry 메시지로 대체됨. 폴백용으로 유지.
     App.detectTokenExpiry = function(text) {
         var clean = App.stripAnsi(text);
         var lines = clean.split('\n');

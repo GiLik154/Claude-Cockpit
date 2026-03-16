@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import PlainTextResponse
 
+from backend import parsers
 from backend.constants import (
     DANGER_PRESETS,
     MAX_CAPTURE_LINES,
@@ -235,3 +236,19 @@ async def api_list_panes(session_id: str) -> List[Dict[str, Any]]:
             "active": parts[3] == "1" if len(parts) > 3 else False,
         })
     return panes
+
+
+@router.get("/api/sessions/{session_id}/agent-status")
+async def api_agent_status(session_id: str, pane_id: Optional[str] = None) -> Dict[str, Any]:
+    """세션(또는 특정 pane)의 에이전트 상태를 추출."""
+    import backend.app as _app
+
+    _app._validate_session_id(session_id)
+    if pane_id is not None:
+        _app._validate_pane_id(pane_id)
+    tmux_name = f"{PREFIX}{session_id}"
+    if not _app.session_exists(tmux_name):
+        return {"status": "idle", "message": "세션 없음"}
+    target = pane_id if pane_id else tmux_name
+    content = await _app._capture_tmux_history_async(target, lines=30, escape_sequences=True)
+    return parsers.extract_agent_status(content)

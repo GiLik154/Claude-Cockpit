@@ -14,6 +14,7 @@ from typing import Tuple
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
+from backend import parsers
 from backend.constants import (
     MAX_WS_MESSAGE_SIZE,
     PREFIX,
@@ -109,6 +110,14 @@ async def ws_terminal(ws: WebSocket, session_id: str) -> None:
                                 "type": "output",
                                 "data": decoded,
                             }))
+                            # 파싱된 사용량 정보 전송
+                            usage = parsers.parse_usage_from_output(decoded)
+                            if usage:
+                                await ws.send_text(json.dumps({"type": "usage_update", "data": usage}))
+                            # 토큰 만료 감지
+                            expiry = parsers.detect_token_expiry(decoded)
+                            if expiry > 0:
+                                await ws.send_text(json.dumps({"type": "token_expiry", "data": {"seconds": expiry}}))
                 except BlockingIOError:
                     continue
                 except OSError:
