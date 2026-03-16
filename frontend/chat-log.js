@@ -231,18 +231,87 @@
         return App.logDiv;
     };
 
-    App.viewLog = function() {
-        if (!App.currentSession) { App.showStatus('세션을 먼저 선택하세요'); return; }
+    App.viewLog = function(targetSessionId) {
+        var sid = targetSessionId || App.currentSession;
+        if (!sid) { App.showStatus('세션을 먼저 선택하세요'); return; }
         clearInterval(App.logRefreshTimer);
         App._viewingPaneId = null;
+        App._viewingLogSessionId = sid;
         document.getElementById('copyModal').classList.add('active');
         var inputRow = document.getElementById('paneInputRow');
         if (inputRow) inputRow.style.display = 'none';
         App.lastLogHash = '';
         var div = App.initLogDiv();
         div.innerHTML = '';
+
+        // 이전 로그 버튼 업데이트
+        _updatePrevLogButton(sid);
+
         App.refreshLog();
         App.logRefreshTimer = setInterval(App.refreshLog, App.LOG_REFRESH_INTERVAL_MS);
+    };
+
+    function _updatePrevLogButton(sessionId) {
+        var header = document.querySelector('#copyModal .modal-header-row');
+        if (!header) return;
+        var existing = document.getElementById('prevLogBtn');
+        if (existing) existing.remove();
+
+        // 현재 세션의 previous_session_id 확인
+        fetch('/api/sessions')
+            .then(function(res) { return res.json(); })
+            .then(function(sessions) {
+                var current = null;
+                for (var i = 0; i < sessions.length; i++) {
+                    if (sessions[i].session_id === sessionId) { current = sessions[i]; break; }
+                }
+                if (!current || !current.previous_session_id) return;
+                var btn = document.createElement('button');
+                btn.id = 'prevLogBtn';
+                btn.className = 'btn btn-sm';
+                btn.textContent = '📋 이전 로그';
+                btn.title = '이전 세션(#' + current.previous_session_id + ')의 로그 보기';
+                btn.addEventListener('click', function() {
+                    App.viewPreviousLog(current.previous_session_id);
+                });
+                var btnGroup = header.querySelector('div');
+                if (btnGroup) btnGroup.insertBefore(btn, btnGroup.firstChild);
+            })
+            .catch(function() {});
+    }
+
+    App.viewPreviousLog = function(prevSessionId) {
+        clearInterval(App.logRefreshTimer);
+        App._viewingLogSessionId = prevSessionId;
+        App.lastLogHash = '';
+        var div = App.initLogDiv();
+        div.innerHTML = '<div class="log-entry log-thinking">이전 세션 #' + App.esc(prevSessionId) + ' 로그 로딩 중...</div>';
+
+        // 이전 세션의 로그 파일 로드
+        fetch('/api/sessions/' + prevSessionId + '/logs?tail=4000')
+            .then(function(res) { return res.ok ? res.text() : ''; })
+            .then(function(text) {
+                if (!text.trim()) {
+                    div.innerHTML = '<div class="log-entry log-text">이전 로그가 비어있습니다.</div>';
+                    return;
+                }
+                div.innerHTML = App.parseLogToHtml(text);
+                var container = document.getElementById('logTerminal');
+                container.scrollTop = container.scrollHeight;
+            })
+            .catch(function() {
+                div.innerHTML = '<div class="log-entry log-text">로그 로드 실패</div>';
+            });
+
+        // 이전 로그 버튼을 "현재 로그" 버튼으로 교체
+        var existing = document.getElementById('prevLogBtn');
+        if (existing) {
+            existing.textContent = '🔄 현재 로그';
+            existing.title = '현재 세션 로그로 돌아가기';
+            existing.onclick = function() {
+                App.viewLog();
+            };
+        }
     };
 
     App._saveDetailsState = _saveDetailsState;
@@ -289,14 +358,15 @@
     }
 
     App.refreshLog = function() {
-        if (!App.currentSession || App._refreshLogRunning) return;
+        var logSid = App._viewingLogSessionId || App.currentSession;
+        if (!logSid || App._refreshLogRunning) return;
         App._refreshLogRunning = true;
 
-        fetch('/api/sessions/' + App.currentSession + '/capture?lines=2000')
+        fetch('/api/sessions/' + logSid + '/capture?lines=2000')
             .then(function(res) { return res.ok ? res.text() : ''; })
             .then(function(text) {
                 if (!text.trim()) {
-                    return fetch('/api/sessions/' + App.currentSession + '/logs?tail=500')
+                    return fetch('/api/sessions/' + logSid + '/logs?tail=500')
                         .then(function(res) { return res.ok ? res.text() : ''; });
                 }
                 return text;
@@ -334,10 +404,13 @@
         var inputRow = document.getElementById('paneInputRow');
         if (inputRow) inputRow.style.display = 'none';
         App._viewingPaneId = null;
+        App._viewingLogSessionId = null;
         var dropdown = document.getElementById('logIndexDropdown');
         if (dropdown) dropdown.classList.remove('active');
         var indexBtn = document.getElementById('logIndexBtn');
         if (indexBtn) indexBtn.style.display = 'none';
+        var prevBtn = document.getElementById('prevLogBtn');
+        if (prevBtn) prevBtn.remove();
     };
 
     App.doCopyClipboard = function() {

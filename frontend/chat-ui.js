@@ -87,8 +87,47 @@
         document.getElementById('sessionName').value = '';
         document.getElementById('sessionCwd').value = '';
         document.getElementById('sessionModel').value = 'auto';
+        App._selectedPreviousSessionId = null;
         document.getElementById('newSessionModal').classList.add('active');
         App.onPresetChange();
+        App.loadRecentSessions();
+    };
+
+    App.loadRecentSessions = function() {
+        var section = document.getElementById('recentSessionsSection');
+        var list = document.getElementById('recentSessionsList');
+        if (!section || !list) return;
+        fetch('/api/recent-sessions')
+            .then(function(res) { return res.json(); })
+            .then(function(items) {
+                if (!items || !items.length) { section.style.display = 'none'; return; }
+                section.style.display = 'block';
+                list.innerHTML = '';
+                items.forEach(function(item) {
+                    var el = document.createElement('div');
+                    el.className = 'recent-session-item';
+                    var cwdShort = item.cwd || '';
+                    if (cwdShort.length > 40) cwdShort = '...' + cwdShort.slice(-37);
+                    el.innerHTML =
+                        '<div class="recent-session-name">' + App.esc(item.name) +
+                        (item.has_log ? ' <span class="recent-log-badge">📋</span>' : '') +
+                        '</div>' +
+                        '<div class="recent-session-path">' + App.esc(cwdShort) + '</div>';
+                    el.addEventListener('click', function() {
+                        document.getElementById('sessionName').value = item.name;
+                        document.getElementById('sessionCwd').value = item.cwd || '';
+                        document.getElementById('sessionPreset').value = item.preset || 'default';
+                        document.getElementById('sessionModel').value = item.model || 'auto';
+                        App._selectedPreviousSessionId = item.has_log ? item.original_id : null;
+                        App.onPresetChange();
+                        // 선택 상태 표시
+                        list.querySelectorAll('.recent-session-item').forEach(function(e) { e.classList.remove('selected'); });
+                        el.classList.add('selected');
+                    });
+                    list.appendChild(el);
+                });
+            })
+            .catch(function() { section.style.display = 'none'; });
     };
 
     App.closeModal = function() {

@@ -21,9 +21,11 @@ from backend.constants import (
     FRONTEND_DIR,
     GROUPS_FILE,
     LOGS_DIR,
+    MAX_RECENT_SESSIONS,
     MODEL_OPTIONS,
     PREFIX,
     PRESET_COMMANDS,
+    RECENT_SESSIONS_FILE,
     SENSITIVE_ENV_PREFIXES,
     SESSIONS_FILE,
     STORAGE_DIR,
@@ -157,6 +159,41 @@ def save_session_meta(meta: Dict[str, Any]) -> None:
     os.makedirs(STORAGE_DIR, exist_ok=True)
     with open(SESSIONS_FILE, "w") as f:
         json.dump(meta, f, indent=2, ensure_ascii=False)
+
+
+def load_recent_sessions() -> List[Dict[str, Any]]:
+    if os.path.exists(RECENT_SESSIONS_FILE):
+        with open(RECENT_SESSIONS_FILE, "r") as f:
+            return json.load(f)
+    return []
+
+
+def save_recent_sessions(recent: List[Dict[str, Any]]) -> None:
+    os.makedirs(STORAGE_DIR, exist_ok=True)
+    with open(RECENT_SESSIONS_FILE, "w") as f:
+        json.dump(recent, f, indent=2, ensure_ascii=False)
+
+
+def add_recent_session(session_id: str, info: Dict[str, Any]) -> None:
+    """삭제된 세션을 최근 목록에 추가 (중복 경로 제거, 최대 MAX_RECENT_SESSIONS개)."""
+    recent = load_recent_sessions()
+    cwd = info.get("cwd", "")
+    log_path = get_log_path(session_id)
+    has_log = os.path.exists(log_path) and os.path.getsize(log_path) > 0
+    entry = {
+        "original_id": session_id,
+        "name": info.get("name", ""),
+        "cwd": cwd,
+        "preset": info.get("preset", "default"),
+        "model": info.get("model", "auto"),
+        "has_log": has_log,
+        "deleted_at": datetime.now().isoformat(),
+    }
+    # 같은 cwd + name 조합이 이미 있으면 교체
+    recent = [r for r in recent if not (r.get("cwd") == cwd and r.get("name") == entry["name"])]
+    recent.insert(0, entry)
+    recent = recent[:MAX_RECENT_SESSIONS]
+    save_recent_sessions(recent)
 
 
 def load_group_meta() -> Dict[str, Any]:

@@ -58,6 +58,9 @@
         var model = document.getElementById('sessionModel').value;
         var cwd = document.getElementById('sessionCwd').value.trim() || undefined;
         var body = { name: name, preset: preset, model: model, cwd: cwd };
+        if (App._selectedPreviousSessionId) {
+            body.previous_session_id = App._selectedPreviousSessionId;
+        }
         fetch('/api/sessions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

@@ -28,7 +28,7 @@ async def api_list_sessions() -> List[Dict[str, Any]]:
     for sid, info in meta.items():
         tmux_name = f"{PREFIX}{sid}"
         preset = info.get("preset", "")
-        result.append({
+        item: Dict[str, Any] = {
             "session_id": sid,
             "name": info.get("name", sid),
             "cmd": info.get("cmd", ""),
@@ -37,7 +37,10 @@ async def api_list_sessions() -> List[Dict[str, Any]]:
             "model": info.get("model", "auto"),
             "alive": tmux_name in alive_sessions,
             "danger_mode": preset in DANGER_PRESETS,
-        })
+        }
+        if info.get("previous_session_id"):
+            item["previous_session_id"] = info["previous_session_id"]
+        result.append(item)
     return result
 
 
@@ -80,13 +83,17 @@ async def api_create_session(body: Dict[str, Any]) -> Dict[str, Any]:
         tmux_name = f"{PREFIX}{sid}"
         _app.create_tmux_session(tmux_name, cmd, real_cwd)
 
-        meta[sid] = {
+        entry: Dict[str, Any] = {
             "name": name,
             "cmd": " ".join(cmd),
             "cwd": real_cwd,
             "preset": preset,
             "model": model,
         }
+        prev_id = body.get("previous_session_id")
+        if prev_id:
+            entry["previous_session_id"] = str(prev_id)
+        meta[sid] = entry
         _app.save_session_meta(meta)
 
     return {
@@ -125,17 +132,27 @@ async def api_restart_session(session_id: str) -> Dict[str, bool]:
 
 @router.delete("/api/sessions/{session_id}")
 async def api_delete_session(session_id: str) -> Dict[str, bool]:
-    """세션 삭제: tmux kill + 메타데이터 제거."""
+    """세션 삭제: tmux kill + 메타데이터 제거 + 최근 세션에 보관."""
     import backend.app as _app
 
     _app._validate_session_id(session_id)
     async with _app._meta_lock:
         meta = _app.load_session_meta()
+        info = meta.get(session_id)
         tmux_name = f"{PREFIX}{session_id}"
         _app.kill_tmux_session(tmux_name)
+        if info:
+            _app.add_recent_session(session_id, info)
         meta.pop(session_id, None)
         _app.save_session_meta(meta)
     return {"ok": True}
+
+
+@router.get("/api/recent-sessions")
+async def api_recent_sessions() -> List[Dict[str, Any]]:
+    """최근 삭제된 세션 목록 반환."""
+    import backend.app as _app
+    return _app.load_recent_sessions()
 
 
 @router.get("/api/sessions/{session_id}/capture")

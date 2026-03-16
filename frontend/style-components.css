@@ -452,6 +452,58 @@
     outline-offset: 2px;
 }
 
+/* 최근 세션 추천 */
+.recent-sessions-section {
+    margin-bottom: 12px;
+}
+.recent-sessions-section > label {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: block;
+}
+.recent-sessions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 160px;
+    overflow-y: auto;
+}
+.recent-session-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.recent-session-item:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-light);
+}
+.recent-session-item.selected {
+    border-color: var(--accent);
+    background: rgba(79, 140, 255, 0.08);
+}
+.recent-session-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+}
+.recent-session-path {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: 'SF Mono', 'Menlo', monospace;
+}
+.recent-log-badge {
+    font-size: 10px;
+    vertical-align: middle;
+}
+
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
         animation-duration: 0.01ms !important;
