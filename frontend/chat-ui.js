@@ -192,7 +192,10 @@
                 if (countEl) countEl.textContent = secs + '초 후 재시도';
             }, 1000);
         } else if (overlay) {
-            clearInterval(overlay._countdownTimer);
+            if (overlay._countdownTimer) {
+                clearInterval(overlay._countdownTimer);
+                overlay._countdownTimer = null;
+            }
             overlay.remove();
         }
     };

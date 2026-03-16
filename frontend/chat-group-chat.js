@@ -304,7 +304,10 @@
         body.appendChild(termEl);
         overlay.classList.add('active');
 
-        // ESC 캡처 (xterm.js보다 먼저 잡기)
+        // ESC 캡처 (xterm.js보다 먼저 잡기) — 중복 등록 방지
+        if (App._gcEscHandler) {
+            document.removeEventListener('keydown', App._gcEscHandler, true);
+        }
         App._gcEscHandler = function(e) {
             if (e.key === 'Escape') {
                 e.stopPropagation();

@@ -114,7 +114,7 @@ async def api_restart_session(session_id: str) -> Dict[str, bool]:
         meta = _app.load_session_meta()
         info = meta.get(session_id)
         if not info:
-            raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
+            raise HTTPException(status_code=404, detail=f"세션 '{session_id}'을(를) 찾을 수 없습니다")
 
         tmux_name = f"{PREFIX}{session_id}"
         _app.kill_tmux_session(tmux_name)
@@ -195,7 +195,7 @@ async def api_send_keys(session_id: str, body: Dict[str, Any]) -> Dict[str, bool
 
     tmux_name = f"{PREFIX}{session_id}"
     if not _app.session_exists(tmux_name):
-        raise HTTPException(status_code=404, detail="Session not found")
+        raise HTTPException(status_code=404, detail="세션을 찾을 수 없습니다")
 
     _app.tmux_run("send-keys", "-t", pane_id, "-l", text)
     _app.tmux_run("send-keys", "-t", pane_id, "Enter")

@@ -36,7 +36,6 @@ from backend.constants import (
     TMUX_DEFAULT_ROWS,
     TMUX_SESSION_INIT_DELAY,
     TMUX_USAGE_SESSION_COLS,
-    USAGE_CLI_STARTUP_DELAY,
     USAGE_PROMPT_POLL_INTERVAL,
     USAGE_PROMPT_POLL_TIMEOUT,
     USAGE_TMUX,
@@ -49,6 +48,9 @@ _usage_ready: bool = False
 
 # 세션 메타데이터 동시 접근 방지 잠금
 _meta_lock = asyncio.Lock()
+
+# usage 세션 동시 접근 방지 잠금
+_usage_lock = asyncio.Lock()
 
 logger = logging.getLogger(__name__)
 
@@ -150,8 +152,11 @@ def kill_tmux_session(session_name: str) -> None:
 
 def load_session_meta() -> Dict[str, Any]:
     if os.path.exists(SESSIONS_FILE):
-        with open(SESSIONS_FILE, "r") as f:
-            return json.load(f)
+        try:
+            with open(SESSIONS_FILE, "r") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, ValueError):
+            logger.warning("sessions.json 파싱 실패, 빈 메타데이터로 시작")
     return {}
 
 
@@ -163,8 +168,11 @@ def save_session_meta(meta: Dict[str, Any]) -> None:
 
 def load_recent_sessions() -> List[Dict[str, Any]]:
     if os.path.exists(RECENT_SESSIONS_FILE):
-        with open(RECENT_SESSIONS_FILE, "r") as f:
-            return json.load(f)
+        try:
+            with open(RECENT_SESSIONS_FILE, "r") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, ValueError):
+            logger.warning("recent_sessions.json 파싱 실패")
     return []
 
 
@@ -198,8 +206,11 @@ def add_recent_session(session_id: str, info: Dict[str, Any]) -> None:
 
 def load_group_meta() -> Dict[str, Any]:
     if os.path.exists(GROUPS_FILE):
-        with open(GROUPS_FILE, "r") as f:
-            return json.load(f)
+        try:
+            with open(GROUPS_FILE, "r") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, ValueError):
+            logger.warning("groups.json 파싱 실패")
     return {}
 
 
@@ -344,9 +355,10 @@ async def _recreate_usage_session() -> None:
 
 
 async def _ensure_usage_session() -> None:
-    if await _usage_session_healthy():
-        return
-    await _recreate_usage_session()
+    async with _usage_lock:
+        if await _usage_session_healthy():
+            return
+        await _recreate_usage_session()
 
 
 def _resolve_preset_cmd(preset: str, model: str = "auto") -> List[str]:

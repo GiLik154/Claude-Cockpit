@@ -141,6 +141,15 @@
     background: rgba(79, 140, 255, 0.15);
     border-color: var(--accent);
 }
+.input-bar .del-btn {
+    color: var(--warning);
+    border-color: rgba(243, 156, 18, 0.3);
+}
+.input-bar .del-btn:hover {
+    background: rgba(243, 156, 18, 0.15);
+    color: var(--warning);
+    border-color: var(--warning);
+}
 .input-bar .restart-btn {
     color: var(--danger);
     border-color: rgba(231, 76, 60, 0.3);

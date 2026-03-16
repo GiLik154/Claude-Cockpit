@@ -66,7 +66,10 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
         })
-        .then(function(res) { return res.json(); })
+        .then(function(res) {
+            if (!res.ok) return res.json().then(function(e) { throw new Error(e.detail || '세션 생성 실패'); });
+            return res.json();
+        })
         .then(function(data) {
             if (data.error) { App.showStatus('Error: ' + data.error); return; }
             App.closeModal();

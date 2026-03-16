@@ -71,7 +71,7 @@ async def api_session_usage(session_id: str) -> Dict[str, Any]:
     _app._validate_session_id(session_id)
     tmux_name = f"{PREFIX}{session_id}"
     if not _app.session_exists(tmux_name):
-        raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found or not running")
+        raise HTTPException(status_code=404, detail=f"세션 '{session_id}'이(가) 존재하지 않거나 실행 중이 아닙니다")
 
     _app.tmux_run("send-keys", "-t", tmux_name, "/usage", "Enter")
     await asyncio.sleep(USAGE_CAPTURE_DELAY)

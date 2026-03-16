@@ -298,7 +298,7 @@
     align-items: center;
     justify-content: center;
     min-height: 40px;
-    transition: border-color 0.2s, opacity 0.2s;
+    transition: border-color var(--transition-fast), opacity var(--transition-fast);
 }
 .preview-group-cell.focused {
     border-color: var(--accent);
