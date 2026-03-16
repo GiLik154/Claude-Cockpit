@@ -302,18 +302,29 @@ async def _usage_session_healthy() -> bool:
     lines = [line.strip() for line in clean.strip().split('\n') if line.strip()]
     if not lines:
         return True  # 출력 없음 = 아직 시작 중
+    # trust 다이얼로그에 멈춰있으면 비정상
+    if _is_trust_dialog(clean):
+        return False
     # "Status dialog dismissed" 반복 → 세션 오염됨
     dismissed_count = clean.count('Status dialog dismissed')
     if dismissed_count >= 5:
         return False
     last = lines[-1]
+    # trust 다이얼로그의 ❯를 제외하고 Claude 프롬프트 ❯ 확인
+    has_prompt = '❯' in clean and not _is_trust_dialog(clean)
     # 쉘 프롬프트만 보이면 claude가 종료된 것으로 판단
     if (re.match(r'^.*[%\$]\s*$', last)
-            and '❯' not in clean
+            and not has_prompt
             and '/usage' not in clean
             and 'Context left' not in clean):
         return False
     return True
+
+
+def _is_trust_dialog(text: str) -> bool:
+    """trust 다이얼로그가 표시 중인지 확인 (❯ 1. Yes 포함)."""
+    lower = text.lower()
+    return 'safety check' in lower or 'trust this folder' in lower
 
 
 async def _wait_for_usage_prompt() -> bool:
@@ -322,11 +333,13 @@ async def _wait_for_usage_prompt() -> bool:
     while time.monotonic() < deadline:
         raw = await _capture_tmux_pane_async(USAGE_TMUX, "-5")
         clean = ANSI_ESCAPE.sub('', raw)
+        # trust 다이얼로그의 ❯와 Claude 프롬프트 ❯를 구분
+        if _is_trust_dialog(clean):
+            tmux_run("send-keys", "-t", USAGE_TMUX, "", "Enter")
+            await asyncio.sleep(USAGE_PROMPT_POLL_INTERVAL)
+            continue
         if '❯' in clean:
             return True
-        # trust 다이얼로그가 나타나면 수락
-        if 'Trust' in clean or 'trust' in clean or 'Yes' in clean:
-            tmux_run("send-keys", "-t", USAGE_TMUX, "", "Enter")
         await asyncio.sleep(USAGE_PROMPT_POLL_INTERVAL)
     return False
 
