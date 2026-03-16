@@ -39,6 +39,7 @@ from backend.constants import (
     USAGE_PROMPT_POLL_INTERVAL,
     USAGE_PROMPT_POLL_TIMEOUT,
     USAGE_TMUX,
+    ZOMBIE_CLEANUP_INTERVAL,
     _VALID_PANE_ID,
     _VALID_SESSION_ID,
 )
@@ -58,9 +59,10 @@ app = FastAPI(title="Claude Web Console")
 
 
 @app.on_event("startup")
-async def _prewarm_usage_session() -> None:
-    """서버 시작 시 usage 세션을 백그라운드로 미리 생성."""
+async def _startup_tasks() -> None:
+    """서버 시작 시 usage 세션 생성 + 좀비 정리 태스크."""
     asyncio.create_task(_ensure_usage_session())
+    asyncio.create_task(_zombie_cleanup_loop())
 
 
 # --- 유효성 검사 ---
@@ -372,6 +374,30 @@ async def _ensure_usage_session() -> None:
         if await _usage_session_healthy():
             return
         await _recreate_usage_session()
+
+
+def _cleanup_zombie_sessions() -> int:
+    """메타데이터 없는 고아 tmux 세션을 정리. 제거한 수 반환."""
+    meta = load_session_meta()
+    alive = list_tmux_sessions()
+    killed = 0
+    for name in alive:
+        sid = name.removeprefix(PREFIX)
+        if sid not in meta:
+            logger.info("좀비 세션 정리: %s", name)
+            kill_tmux_session(name)
+            killed += 1
+    return killed
+
+
+async def _zombie_cleanup_loop() -> None:
+    """주기적으로 좀비 tmux 세션 정리."""
+    while True:
+        await asyncio.sleep(ZOMBIE_CLEANUP_INTERVAL)
+        try:
+            _cleanup_zombie_sessions()
+        except Exception:
+            logger.exception("좀비 세션 정리 중 오류")
 
 
 def _resolve_preset_cmd(preset: str, model: str = "auto") -> List[str]:
