@@ -435,7 +435,20 @@ app.include_router(_usage_router)
 app.include_router(_groups_router)
 app.include_router(_ws_router)
 
-# 정적 파일 & 인덱스 페이지
+# 정적 파일 & 인덱스 페이지 — JS/CSS는 no-cache로 항상 최신 버전 제공
+from starlette.middleware.base import BaseHTTPMiddleware  # noqa: E402
+from starlette.requests import Request  # noqa: E402
+
+
+class _NoCacheStaticMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):  # type: ignore[override]
+        response = await call_next(request)
+        if request.url.path.startswith("/static/"):
+            response.headers["Cache-Control"] = "no-cache, must-revalidate"
+        return response
+
+
+app.add_middleware(_NoCacheStaticMiddleware)
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="frontend")
 
 
