@@ -160,6 +160,38 @@
     border-color: var(--danger);
 }
 
+/* 방향키 그룹 */
+.arrow-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+.arrow-ud {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+.input-bar .arrow-btn {
+    min-width: 30px;
+    padding: 0 6px;
+    font-size: 10px;
+    color: var(--text-dim);
+    border-color: var(--border);
+}
+.input-bar .arrow-btn.arrow-sm {
+    height: 20px;
+    font-size: 8px;
+}
+.input-bar .arrow-btn:hover {
+    color: var(--text);
+    background: var(--bg-hover);
+}
+.input-bar .arrow-btn:active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+
 /* 토큰 재시도 바 */
 .token-retry-bar {
     display: flex;

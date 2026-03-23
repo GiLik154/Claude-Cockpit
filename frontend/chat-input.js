@@ -17,6 +17,10 @@
         setTimeout(function() { App.sendToCurrentSession('\r'); }, 50);
     };
     App.sendDelete = function() { App.sendToCurrentSession('\x7f'); };
+    App.sendArrow = function(dir) {
+        var codes = { up: '\x1b[A', down: '\x1b[B', right: '\x1b[C', left: '\x1b[D' };
+        App.sendToCurrentSession(codes[dir] || '');
+    };
 
     App.doSend = function() {
         if (App.isComposing) return;
@@ -94,6 +98,7 @@
     window.sendEsc = App.sendEsc;
     window.sendNumber = App.sendNumber;
     window.sendDelete = App.sendDelete;
+    window.sendArrow = App.sendArrow;
     window.doSend = App.doSend;
     window.clearTerminal = App.clearTerminal;
 })();
