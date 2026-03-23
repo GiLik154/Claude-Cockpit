@@ -191,6 +191,15 @@
     color: #fff;
     border-color: var(--accent);
 }
+.input-bar .arrow-btn.arrow-edge {
+    font-size: 10px;
+    min-width: 26px;
+    padding: 0 4px;
+    opacity: 0.7;
+}
+.input-bar .arrow-btn.arrow-edge:hover {
+    opacity: 1;
+}
 
 /* 토큰 재시도 바 */
 .token-retry-bar {

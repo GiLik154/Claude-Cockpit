@@ -8,16 +8,16 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Claude Web Console</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.min.css" integrity="sha384-tStR1zLfWgsiXCF3IgfB3lBa8KmBe/lG287CL9WCeKgQYcp1bjb4/+mwN6oti4Co" crossorigin="anonymous">
-    <link rel="stylesheet" href="/static/style.css?v=15">
-    <link rel="stylesheet" href="/static/style-layout.css?v=15">
-    <link rel="stylesheet" href="/static/style-sidebar.css?v=15">
-    <link rel="stylesheet" href="/static/style-terminal.css?v=15">
-    <link rel="stylesheet" href="/static/style-modal.css?v=15">
-    <link rel="stylesheet" href="/static/style-input.css?v=15">
-    <link rel="stylesheet" href="/static/style-components.css?v=15">
-    <link rel="stylesheet" href="/static/style-groups.css?v=15">
-    <link rel="stylesheet" href="/static/style-group-chat.css?v=15">
-    <link rel="stylesheet" href="/static/style-responsive.css?v=15">
+    <link rel="stylesheet" href="/static/style.css?v=16">
+    <link rel="stylesheet" href="/static/style-layout.css?v=16">
+    <link rel="stylesheet" href="/static/style-sidebar.css?v=16">
+    <link rel="stylesheet" href="/static/style-terminal.css?v=16">
+    <link rel="stylesheet" href="/static/style-modal.css?v=16">
+    <link rel="stylesheet" href="/static/style-input.css?v=16">
+    <link rel="stylesheet" href="/static/style-components.css?v=16">
+    <link rel="stylesheet" href="/static/style-groups.css?v=16">
+    <link rel="stylesheet" href="/static/style-group-chat.css?v=16">
+    <link rel="stylesheet" href="/static/style-responsive.css?v=16">
 </head>
 <body>
     <header class="header" role="banner">
@@ -247,12 +247,14 @@
             <button class="tool-btn esc-btn" onclick="sendEsc()" title="ESC" aria-label="ESC">ESC</button>
             <button class="tool-btn del-btn" onclick="sendDelete()" title="Delete" aria-label="Delete">&#x232b;</button>
             <span class="arrow-group">
+                <button class="tool-btn arrow-btn arrow-edge" onclick="sendArrow('home')" aria-label="Home">&#x23EE;</button>
                 <button class="tool-btn arrow-btn" onclick="sendArrow('left')" aria-label="Left">&#x25C0;</button>
                 <span class="arrow-ud">
                     <button class="tool-btn arrow-btn arrow-sm" onclick="sendArrow('up')" aria-label="Up">&#x25B2;</button>
                     <button class="tool-btn arrow-btn arrow-sm" onclick="sendArrow('down')" aria-label="Down">&#x25BC;</button>
                 </span>
                 <button class="tool-btn arrow-btn" onclick="sendArrow('right')" aria-label="Right">&#x25B6;</button>
+                <button class="tool-btn arrow-btn arrow-edge" onclick="sendArrow('end')" aria-label="End">&#x23ED;</button>
             </span>
             <button class="tool-btn" onclick="viewLog()" title="View Log" aria-label="View log">Log</button>
             <button class="tool-btn" id="viewModeBtn" onclick="toggleViewMode()" title="화면 모드 전환" aria-label="View mode">📋</button>
@@ -385,16 +387,16 @@
     <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.min.js" integrity="sha384-XGqKrV8Jrukp1NITJbOEHwg01tNkuXr6uB6YEj69ebpYU3v7FvoGgEg23C1Gcehk" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-web-links@0.11.0/lib/addon-web-links.min.js" integrity="sha384-S1biLeI8L/bFduIVvCxbn/l4EtaG4nTqQjGF7qCYTbsGXGFe8KgIKXtw4+UWxprv" crossorigin="anonymous"></script>
     <!-- 앱 모듈: 로드 순서 중요 (core → features → sessions/terminal → init) -->
-    <script src="/static/chat-core.js?v=15"></script>
-    <script src="/static/chat-ui.js?v=15"></script>
-    <script src="/static/chat-log.js?v=15"></script>
-    <script src="/static/chat-usage.js?v=15"></script>
-    <script src="/static/chat-input.js?v=15"></script>
-    <script src="/static/chat-panes.js?v=15"></script>
-    <script src="/static/chat-groups.js?v=15"></script>
-    <script src="/static/chat-group-chat.js?v=15"></script>
-    <script src="/static/chat-sessions.js?v=15"></script>
-    <script src="/static/chat-terminal.js?v=15"></script>
-    <script src="/static/chat.js?v=15"></script>
+    <script src="/static/chat-core.js?v=16"></script>
+    <script src="/static/chat-ui.js?v=16"></script>
+    <script src="/static/chat-log.js?v=16"></script>
+    <script src="/static/chat-usage.js?v=16"></script>
+    <script src="/static/chat-input.js?v=16"></script>
+    <script src="/static/chat-panes.js?v=16"></script>
+    <script src="/static/chat-groups.js?v=16"></script>
+    <script src="/static/chat-group-chat.js?v=16"></script>
+    <script src="/static/chat-sessions.js?v=16"></script>
+    <script src="/static/chat-terminal.js?v=16"></script>
+    <script src="/static/chat.js?v=16"></script>
 </body>
 </html>

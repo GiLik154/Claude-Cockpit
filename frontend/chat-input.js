@@ -18,7 +18,7 @@
     };
     App.sendDelete = function() { App.sendToCurrentSession('\x7f'); };
     App.sendArrow = function(dir) {
-        var codes = { up: '\x1b[A', down: '\x1b[B', right: '\x1b[C', left: '\x1b[D' };
+        var codes = { up: '\x1b[A', down: '\x1b[B', right: '\x1b[C', left: '\x1b[D', home: '\x1b[H', end: '\x1b[F' };
         App.sendToCurrentSession(codes[dir] || '');
     };
 
