@@ -8,16 +8,16 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Claude Web Console</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.min.css" integrity="sha384-tStR1zLfWgsiXCF3IgfB3lBa8KmBe/lG287CL9WCeKgQYcp1bjb4/+mwN6oti4Co" crossorigin="anonymous">
-    <link rel="stylesheet" href="/static/style.css?v=14">
-    <link rel="stylesheet" href="/static/style-layout.css?v=14">
-    <link rel="stylesheet" href="/static/style-sidebar.css?v=14">
-    <link rel="stylesheet" href="/static/style-terminal.css?v=14">
-    <link rel="stylesheet" href="/static/style-modal.css?v=14">
-    <link rel="stylesheet" href="/static/style-input.css?v=14">
-    <link rel="stylesheet" href="/static/style-components.css?v=14">
-    <link rel="stylesheet" href="/static/style-groups.css?v=14">
-    <link rel="stylesheet" href="/static/style-group-chat.css?v=14">
-    <link rel="stylesheet" href="/static/style-responsive.css?v=14">
+    <link rel="stylesheet" href="/static/style.css?v=15">
+    <link rel="stylesheet" href="/static/style-layout.css?v=15">
+    <link rel="stylesheet" href="/static/style-sidebar.css?v=15">
+    <link rel="stylesheet" href="/static/style-terminal.css?v=15">
+    <link rel="stylesheet" href="/static/style-modal.css?v=15">
+    <link rel="stylesheet" href="/static/style-input.css?v=15">
+    <link rel="stylesheet" href="/static/style-components.css?v=15">
+    <link rel="stylesheet" href="/static/style-groups.css?v=15">
+    <link rel="stylesheet" href="/static/style-group-chat.css?v=15">
+    <link rel="stylesheet" href="/static/style-responsive.css?v=15">
 </head>
 <body>
     <header class="header" role="banner">
@@ -190,56 +190,8 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Slide 5: 툴바 버튼 가이드 -->
+                        <!-- Slide 5: 세션 목록 마크 가이드 -->
                         <div class="onboarding-slide" data-slide="4">
-                            <h2 class="onboarding-title">툴바 버튼 가이드</h2>
-                            <div class="toolbar-guide">
-                                <div class="toolbar-guide-mock">
-                                    <div class="guide-item">
-                                        <button class="cancel-btn" disabled>&#x2715;</button>
-                                        <span class="guide-label">Cancel (Ctrl+C)</span>
-                                    </div>
-                                    <div class="guide-item">
-                                        <button class="tool-btn esc-btn" disabled>ESC</button>
-                                        <span class="guide-label">작업 중단</span>
-                                    </div>
-                                    <div class="guide-item">
-                                        <div class="guide-btn-group">
-                                            <button class="tool-btn num-btn" disabled>1</button>
-                                            <button class="tool-btn num-btn" disabled>2</button>
-                                            <button class="tool-btn num-btn" disabled>3</button>
-                                        </div>
-                                        <span class="guide-label">선택지 빠른 응답</span>
-                                    </div>
-                                    <div class="guide-item">
-                                        <button class="tool-btn del-btn" disabled>&#x232b;</button>
-                                        <span class="guide-label">입력 삭제</span>
-                                    </div>
-                                    <div class="guide-item">
-                                        <button class="tool-btn" disabled>Log</button>
-                                        <span class="guide-label">전체 로그 보기</span>
-                                    </div>
-                                    <div class="guide-item">
-                                        <button class="tool-btn" disabled>📋</button>
-                                        <span class="guide-label">뷰 모드 전환</span>
-                                    </div>
-                                    <div class="guide-item">
-                                        <button class="tool-btn team-btn" disabled>Team</button>
-                                        <span class="guide-label">에이전트 팀 요청</span>
-                                    </div>
-                                    <div class="guide-item">
-                                        <button class="tool-btn" disabled>Clear</button>
-                                        <span class="guide-label">화면 지우기</span>
-                                    </div>
-                                    <div class="guide-item">
-                                        <button class="tool-btn restart-btn" disabled>&#x21bb;</button>
-                                        <span class="guide-label">세션 재시작</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Slide 6: 세션 목록 마크 가이드 -->
-                        <div class="onboarding-slide" data-slide="5">
                             <h2 class="onboarding-title">세션 목록 마크</h2>
                             <p class="onboarding-desc">사이드바 세션 항목의 아이콘과 뱃지 의미</p>
                             <div class="onboarding-feature">
@@ -275,7 +227,6 @@
                             <span class="onboarding-dot" onclick="onboardingGo(2)"></span>
                             <span class="onboarding-dot" onclick="onboardingGo(3)"></span>
                             <span class="onboarding-dot" onclick="onboardingGo(4)"></span>
-                            <span class="onboarding-dot" onclick="onboardingGo(5)"></span>
                         </div>
                         <button class="onboarding-nav-btn" id="onboardingNext" onclick="onboardingNav(1)">→</button>
                     </div>
@@ -434,16 +385,16 @@
     <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.min.js" integrity="sha384-XGqKrV8Jrukp1NITJbOEHwg01tNkuXr6uB6YEj69ebpYU3v7FvoGgEg23C1Gcehk" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-web-links@0.11.0/lib/addon-web-links.min.js" integrity="sha384-S1biLeI8L/bFduIVvCxbn/l4EtaG4nTqQjGF7qCYTbsGXGFe8KgIKXtw4+UWxprv" crossorigin="anonymous"></script>
     <!-- 앱 모듈: 로드 순서 중요 (core → features → sessions/terminal → init) -->
-    <script src="/static/chat-core.js?v=14"></script>
-    <script src="/static/chat-ui.js?v=14"></script>
-    <script src="/static/chat-log.js?v=14"></script>
-    <script src="/static/chat-usage.js?v=14"></script>
-    <script src="/static/chat-input.js?v=14"></script>
-    <script src="/static/chat-panes.js?v=14"></script>
-    <script src="/static/chat-groups.js?v=14"></script>
-    <script src="/static/chat-group-chat.js?v=14"></script>
-    <script src="/static/chat-sessions.js?v=14"></script>
-    <script src="/static/chat-terminal.js?v=14"></script>
-    <script src="/static/chat.js?v=14"></script>
+    <script src="/static/chat-core.js?v=15"></script>
+    <script src="/static/chat-ui.js?v=15"></script>
+    <script src="/static/chat-log.js?v=15"></script>
+    <script src="/static/chat-usage.js?v=15"></script>
+    <script src="/static/chat-input.js?v=15"></script>
+    <script src="/static/chat-panes.js?v=15"></script>
+    <script src="/static/chat-groups.js?v=15"></script>
+    <script src="/static/chat-group-chat.js?v=15"></script>
+    <script src="/static/chat-sessions.js?v=15"></script>
+    <script src="/static/chat-terminal.js?v=15"></script>
+    <script src="/static/chat.js?v=15"></script>
 </body>
 </html>
