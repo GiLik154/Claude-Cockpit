@@ -157,16 +157,30 @@ async def ws_terminal(ws: WebSocket, session_id: str) -> None:
     except Exception:
         logger.warning("WebSocket handler unexpected error", exc_info=True)
     finally:
-        reader_task.cancel()
+        # 1) 프로세스 종료
         try:
-            os.kill(pid, signal.SIGKILL)
+            os.kill(pid, signal.SIGTERM)
         except ProcessLookupError:
             pass
+        # 2) fd 닫기 (프로세스에 EOF 전달)
         try:
             os.close(fd)
         except OSError:
             pass
+        # 3) reader 태스크 정리
+        reader_task.cancel()
         try:
-            os.waitpid(pid, os.WNOHANG)
+            await reader_task
+        except (asyncio.CancelledError, Exception):
+            pass
+        # 4) 프로세스 reap (좀비 방지)
+        try:
+            _pid, _ = os.waitpid(pid, os.WNOHANG)
+            if _pid == 0:
+                # 아직 안 죽었으면 SIGKILL 후 blocking wait
+                os.kill(pid, signal.SIGKILL)
+                os.waitpid(pid, 0)
         except ChildProcessError:
+            pass
+        except ProcessLookupError:
             pass

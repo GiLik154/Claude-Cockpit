@@ -57,12 +57,27 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Claude Web Console")
 
+_background_tasks: List[asyncio.Task] = []
+
 
 @app.on_event("startup")
 async def _startup_tasks() -> None:
     """서버 시작 시 usage 세션 생성 + 좀비 정리 태스크."""
-    asyncio.create_task(_ensure_usage_session())
-    asyncio.create_task(_zombie_cleanup_loop())
+    _background_tasks.append(asyncio.create_task(_ensure_usage_session()))
+    _background_tasks.append(asyncio.create_task(_zombie_cleanup_loop()))
+
+
+@app.on_event("shutdown")
+async def _shutdown_tasks() -> None:
+    """서버 종료 시 백그라운드 태스크 정리."""
+    for task in _background_tasks:
+        if not task.done():
+            task.cancel()
+            try:
+                await task
+            except (asyncio.CancelledError, Exception):
+                pass
+    _background_tasks.clear()
 
 
 # --- 유효성 검사 ---
@@ -365,7 +380,10 @@ async def _recreate_usage_session() -> None:
     if not await _wait_for_usage_prompt():
         # 폴백: trust 다이얼로그 수락 후 재시도
         tmux_run("send-keys", "-t", USAGE_TMUX, "", "Enter")
-        await _wait_for_usage_prompt()
+        if not await _wait_for_usage_prompt():
+            logger.warning("usage 세션 프롬프트 대기 실패, 재생성 필요")
+            _usage_ready = False
+            return
     _usage_ready = True
 
 
@@ -395,7 +413,11 @@ async def _zombie_cleanup_loop() -> None:
     while True:
         await asyncio.sleep(ZOMBIE_CLEANUP_INTERVAL)
         try:
-            _cleanup_zombie_sessions()
+            async with _meta_lock:
+                loop = asyncio.get_running_loop()
+                await loop.run_in_executor(None, _cleanup_zombie_sessions)
+        except asyncio.CancelledError:
+            raise
         except Exception:
             logger.exception("좀비 세션 정리 중 오류")
 
