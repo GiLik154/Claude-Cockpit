@@ -1,5 +1,6 @@
 """로그 API 라우트."""
 
+import gzip
 import os
 from typing import Any, Dict
 
@@ -20,10 +21,15 @@ async def api_get_logs(session_id: str, tail: int = 200) -> PlainTextResponse:
     _app._validate_session_id(session_id)
     tail = min(max(tail, 1), MAX_LOG_TAIL_LINES)
     path = _app.get_log_path(session_id)
-    if not os.path.exists(path):
+    gz_path = path + ".gz"
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+    elif os.path.exists(gz_path):
+        with gzip.open(gz_path, "rt", encoding="utf-8") as f:
+            lines = f.readlines()
+    else:
         return PlainTextResponse("")
-    with open(path, "r", encoding="utf-8") as f:
-        lines = f.readlines()
     return PlainTextResponse("".join(lines[-tail:]))
 
 

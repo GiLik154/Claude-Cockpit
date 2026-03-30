@@ -1,6 +1,7 @@
 """FastAPI 백엔드 진입점. 헬퍼 함수들을 정의하고 서브모듈 라우터를 포함한다."""
 
 import asyncio
+import gzip
 import json
 import logging
 import os
@@ -65,6 +66,9 @@ async def _startup_tasks() -> None:
     """서버 시작 시 usage 세션 생성 + 좀비 정리 태스크."""
     _background_tasks.append(asyncio.create_task(_ensure_usage_session()))
     _background_tasks.append(asyncio.create_task(_zombie_cleanup_loop()))
+    # 비활성 세션 로그 압축 (blocking I/O → executor)
+    loop = asyncio.get_running_loop()
+    await loop.run_in_executor(None, compress_inactive_logs)
 
 
 @app.on_event("shutdown")
@@ -108,6 +112,35 @@ def _clean_env() -> Dict[str, str]:
 def get_log_path(session_id: str) -> str:
     os.makedirs(LOGS_DIR, exist_ok=True)
     return os.path.join(LOGS_DIR, f"session_{session_id}.log")
+
+
+def compress_inactive_logs() -> int:
+    """활성 세션이 아닌 로그 파일을 gzip 압축. 압축한 수 반환."""
+    meta = load_session_meta()
+    active_ids = set(meta.keys())
+    compressed = 0
+    if not os.path.isdir(LOGS_DIR):
+        return 0
+    for fname in os.listdir(LOGS_DIR):
+        if not fname.endswith(".log"):
+            continue
+        sid = fname.removeprefix("session_").removesuffix(".log")
+        if sid in active_ids:
+            continue
+        log_path = os.path.join(LOGS_DIR, fname)
+        gz_path = log_path + ".gz"
+        if os.path.getsize(log_path) == 0:
+            continue
+        try:
+            with open(log_path, "rb") as f_in, gzip.open(gz_path, "wb") as f_out:
+                while chunk := f_in.read(1024 * 1024):
+                    f_out.write(chunk)
+            os.remove(log_path)
+            compressed += 1
+            logger.info("로그 압축: %s → %s", fname, fname + ".gz")
+        except Exception:
+            logger.exception("로그 압축 실패: %s", fname)
+    return compressed
 
 
 def append_log(session_id: str, direction: str, text: str) -> None:
