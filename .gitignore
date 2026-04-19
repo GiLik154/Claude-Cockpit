@@ -40,6 +40,14 @@ storage/conversations/
 # Claude Code
 CLAUDE.md
 
+# SSL / Caddy
+certs/
+Caddyfile
+
+# Storage backups & runtime
+storage/*.bak
+storage/recent_sessions.json
+
 # OS
 .DS_Store
 Thumbs.db

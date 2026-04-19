@@ -17,6 +17,7 @@
         setTimeout(function() { App.sendToCurrentSession('\r'); }, 50);
     };
     App.sendDelete = function() { App.sendToCurrentSession('\x7f'); };
+    App.sendEnter = function() { App.sendToCurrentSession('\r'); };
     App.sendArrow = function(dir) {
         var codes = { up: '\x1b[A', down: '\x1b[B', right: '\x1b[C', left: '\x1b[D', home: '\x1b[H', end: '\x1b[F' };
         App.sendToCurrentSession(codes[dir] || '');
@@ -98,6 +99,7 @@
     window.sendEsc = App.sendEsc;
     window.sendNumber = App.sendNumber;
     window.sendDelete = App.sendDelete;
+    window.sendEnter = App.sendEnter;
     window.sendArrow = App.sendArrow;
     window.doSend = App.doSend;
     window.clearTerminal = App.clearTerminal;
