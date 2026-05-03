@@ -22,6 +22,7 @@ from backend.constants import (
     DEFAULT_SCROLLBACK_LINES,
     FRONTEND_DIR,
     GROUPS_FILE,
+    LOG_ROTATION_INTERVAL,
     LOGS_DIR,
     MAX_RECENT_SESSIONS,
     MODEL_OPTIONS,
@@ -46,6 +47,8 @@ from backend.constants import (
     _VALID_PANE_ID,
     _VALID_SESSION_ID,
 )
+from backend.log_rotation import run_rotation_cycle
+from backend.settings import get_log_retention_days
 
 # 전용 usage 세션 초기화 여부
 _usage_ready: bool = False
@@ -65,12 +68,14 @@ _background_tasks: List[asyncio.Task] = []
 
 @app.on_event("startup")
 async def _startup_tasks() -> None:
-    """서버 시작 시 usage 세션 생성 + 좀비 정리 태스크."""
+    """서버 시작 시 usage 세션 생성 + 좀비 정리 + 로그 회전 태스크."""
     _background_tasks.append(asyncio.create_task(_ensure_usage_session()))
     _background_tasks.append(asyncio.create_task(_zombie_cleanup_loop()))
-    # 비활성 세션 로그 압축 (blocking I/O → executor)
+    _background_tasks.append(asyncio.create_task(_log_rotation_loop()))
+    # 비활성 세션 로그 압축 + 시작 시점 1회 회전/만료 정리 (blocking I/O → executor)
     loop = asyncio.get_running_loop()
     await loop.run_in_executor(None, compress_inactive_logs)
+    await loop.run_in_executor(None, run_rotation_cycle, get_log_retention_days())
 
 
 @app.on_event("shutdown")
@@ -474,6 +479,20 @@ async def _zombie_cleanup_loop() -> None:
             logger.exception("좀비 세션 정리 중 오류")
 
 
+async def _log_rotation_loop() -> None:
+    """주기적으로 로그 회전 + 만료 삭제."""
+    while True:
+        await asyncio.sleep(LOG_ROTATION_INTERVAL)
+        try:
+            loop = asyncio.get_running_loop()
+            retention = await loop.run_in_executor(None, get_log_retention_days)
+            await loop.run_in_executor(None, run_rotation_cycle, retention)
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception("로그 회전 중 오류")
+
+
 def _resolve_preset_cmd(preset: str, model: str = "auto") -> List[str]:
     cmd = list(PRESET_COMMANDS.get(preset, PRESET_COMMANDS["default"]))
     model_flag = MODEL_OPTIONS.get(model, "")
@@ -501,12 +520,14 @@ from backend.sessions import router as _sessions_router  # noqa: E402
 from backend.log import router as _log_router  # noqa: E402
 from backend.usage import router as _usage_router  # noqa: E402
 from backend.groups import router as _groups_router  # noqa: E402
+from backend.settings import router as _settings_router  # noqa: E402
 from backend.websocket import router as _ws_router  # noqa: E402
 
 app.include_router(_sessions_router)
 app.include_router(_log_router)
 app.include_router(_usage_router)
 app.include_router(_groups_router)
+app.include_router(_settings_router)
 app.include_router(_ws_router)
 
 # 정적 파일 & 인덱스 페이지 — JS/CSS는 no-cache로 항상 최신 버전 제공

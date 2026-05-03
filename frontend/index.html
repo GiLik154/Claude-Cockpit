@@ -26,6 +26,7 @@
             <h1 onclick="goHome()" style="cursor:pointer">Claude Cockpit</h1>
         </div>
         <button class="usage-badge" id="usageBadge" onclick="fetchUsage()" title="토큰 사용량 확인 (클릭하여 새로고침)" aria-label="View usage">Usage</button>
+        <button class="btn btn-sm" onclick="openSettingsModal()" title="설정 (로그 보관일수)" aria-label="Settings">&#9881;</button>
         <button class="btn btn-sm btn-restart-all" onclick="restartAllSessions()" title="실행 중인 모든 세션을 재시작합니다" aria-label="Restart all sessions">↻ All</button>
         <button class="btn btn-primary btn-sm" onclick="openNewSession()" title="새 Claude CLI 세션 생성" aria-label="Create new session">+ New</button>
     </header>
@@ -430,6 +431,21 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="settingsModal" role="dialog" aria-modal="true" aria-label="Settings">
+        <div class="modal">
+            <h3>설정</h3>
+            <label for="settingsRetentionDays">로그 보관일수 (1~90일)</label>
+            <input type="number" id="settingsRetentionDays" min="1" max="90" step="1" value="7">
+            <p class="settings-hint">매시간 자정 이전 로그를 <code>session_X.log.YYYY-MM-DD.gz</code>로 압축 회전하고, 보관일수를 초과한 압축 로그를 자동 삭제합니다.</p>
+            <div class="settings-stats" id="settingsStats">로그 사용량 확인 중...</div>
+            <div class="modal-actions">
+                <button class="btn" onclick="cleanupLogsNow()" title="회전 + 만료 삭제를 지금 실행">즉시 정리</button>
+                <button class="btn" onclick="closeSettingsModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveSettings()">Save</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/lib/xterm.min.js" integrity="sha384-J4qzUjBl1FxyLsl/kQPQIOeINsmp17OHYXDOMpMxlKX53ZfYsL+aWHpgArvOuof9" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.min.js" integrity="sha384-XGqKrV8Jrukp1NITJbOEHwg01tNkuXr6uB6YEj69ebpYU3v7FvoGgEg23C1Gcehk" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-web-links@0.11.0/lib/addon-web-links.min.js" integrity="sha384-S1biLeI8L/bFduIVvCxbn/l4EtaG4nTqQjGF7qCYTbsGXGFe8KgIKXtw4+UWxprv" crossorigin="anonymous"></script>
@@ -444,6 +460,7 @@
     <script src="/static/chat-group-chat.js"></script>
     <script src="/static/chat-sessions.js"></script>
     <script src="/static/chat-terminal.js"></script>
+    <script src="/static/chat-settings.js"></script>
     <script src="/static/chat.js"></script>
 </body>
 </html>

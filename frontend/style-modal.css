@@ -60,6 +60,29 @@
     gap: 10px;
 }
 
+.settings-hint {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+    margin-top: 10px;
+}
+.settings-hint code {
+    background: var(--bg-card);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 11px;
+}
+.settings-stats {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--text-dim);
+}
+
 /* 로그 모달 */
 .copy-modal {
     width: 95vw;
