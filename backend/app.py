@@ -2,6 +2,7 @@
 
 import asyncio
 import gzip
+import hmac
 import json
 import logging
 import os
@@ -13,7 +14,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Tuple
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from backend.constants import (
@@ -28,6 +29,7 @@ from backend.constants import (
     PRESET_COMMANDS,
     RECENT_SESSIONS_FILE,
     SENSITIVE_ENV_PREFIXES,
+    SENSITIVE_ENV_SUBSTRINGS,
     SESSIONS_FILE,
     STORAGE_DIR,
     TMUX,
@@ -103,8 +105,15 @@ def _validate_pane_id(pane_id: str) -> None:
 
 def _clean_env() -> Dict[str, str]:
     """민감한 환경변수를 제거한 사본을 반환."""
-    return {k: v for k, v in os.environ.items()
-            if not k.startswith(SENSITIVE_ENV_PREFIXES)}
+    cleaned: Dict[str, str] = {}
+    for k, v in os.environ.items():
+        if k.startswith(SENSITIVE_ENV_PREFIXES):
+            continue
+        upper = k.upper()
+        if any(s in upper for s in SENSITIVE_ENV_SUBSTRINGS):
+            continue
+        cleaned[k] = v
+    return cleaned
 
 
 # --- 로그 ---
@@ -135,6 +144,10 @@ def compress_inactive_logs() -> int:
             with open(log_path, "rb") as f_in, gzip.open(gz_path, "wb") as f_out:
                 while chunk := f_in.read(1024 * 1024):
                     f_out.write(chunk)
+            try:
+                os.chmod(gz_path, 0o600)
+            except OSError:
+                pass
             os.remove(log_path)
             compressed += 1
             logger.info("로그 압축: %s → %s", fname, fname + ".gz")
@@ -150,10 +163,16 @@ def append_log(session_id: str, direction: str, text: str) -> None:
         return
     ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     prefix = ">>> " if direction == "in" else ""
+    new_file = not os.path.exists(path)
     with open(path, "a", encoding="utf-8") as f:
         f.write(f"[{ts}] {prefix}{clean}")
         if not clean.endswith('\n'):
             f.write('\n')
+    if new_file:
+        try:
+            os.chmod(path, 0o600)
+        except OSError:
+            pass
 
 
 # --- tmux 헬퍼 ---
@@ -503,6 +522,28 @@ class _NoCacheStaticMiddleware(BaseHTTPMiddleware):
         return response
 
 
+class _TokenAuthMiddleware(BaseHTTPMiddleware):
+    """CLAUDE_PROXY_TOKEN 환경변수가 설정된 경우 /api/* 요청을 토큰 검증."""
+
+    async def dispatch(self, request: Request, call_next):  # type: ignore[override]
+        token = os.environ.get("CLAUDE_PROXY_TOKEN", "").strip()
+        if not token:
+            return await call_next(request)
+        path = request.url.path
+        if not path.startswith("/api/"):
+            return await call_next(request)
+        provided = ""
+        auth_header = request.headers.get("authorization", "")
+        if auth_header.startswith("Bearer "):
+            provided = auth_header[len("Bearer "):].strip()
+        if not provided:
+            provided = request.query_params.get("token", "") or request.cookies.get("claude_proxy_token", "")
+        if not hmac.compare_digest(provided, token):
+            return JSONResponse({"detail": "unauthorized"}, status_code=401)
+        return await call_next(request)
+
+
+app.add_middleware(_TokenAuthMiddleware)
 app.add_middleware(_NoCacheStaticMiddleware)
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="frontend")
 
