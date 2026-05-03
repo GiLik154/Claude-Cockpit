@@ -3,6 +3,7 @@
 import asyncio
 import codecs
 import fcntl
+import hmac
 import json
 import logging
 import os
@@ -11,8 +12,23 @@ import signal
 import struct
 import termios
 from typing import Tuple
+from urllib.parse import urlparse
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+
+_ALLOWED_WS_HOSTS = frozenset({"localhost", "127.0.0.1", "[::1]", "::1"})
+
+
+def _is_allowed_origin(origin: str) -> bool:
+    if not origin:
+        return False
+    try:
+        parsed = urlparse(origin)
+    except ValueError:
+        return False
+    if parsed.scheme not in ("http", "https"):
+        return False
+    return (parsed.hostname or "") in _ALLOWED_WS_HOSTS
 
 from backend.constants import (
     MAX_WS_MESSAGE_SIZE,
@@ -58,6 +74,18 @@ def _spawn_pty_sync(tmux_name: str) -> Tuple[int, int]:
 async def ws_terminal(ws: WebSocket, session_id: str) -> None:
     """브라우저 xterm.js 터미널과 tmux 세션을 PTY로 연결."""
     import backend.app as _app
+
+    origin = ws.headers.get("origin", "")
+    if not _is_allowed_origin(origin):
+        await ws.close(code=1008)
+        return
+
+    expected_token = os.environ.get("CLAUDE_PROXY_TOKEN", "").strip()
+    if expected_token:
+        provided = ws.query_params.get("token", "") or ws.cookies.get("claude_proxy_token", "")
+        if not hmac.compare_digest(provided, expected_token):
+            await ws.close(code=1008)
+            return
 
     await ws.accept()
 
