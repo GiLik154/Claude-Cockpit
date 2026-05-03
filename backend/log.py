@@ -4,11 +4,11 @@ import gzip
 import os
 from typing import Any, Dict
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import PlainTextResponse
 
 from backend import parsers
-from backend.constants import MAX_LOG_TAIL_LINES
+from backend.constants import MAX_LOG_TAIL_LINES, MAX_PARSE_LOG_TEXT
 
 router = APIRouter()
 
@@ -37,6 +37,11 @@ async def api_get_logs(session_id: str, tail: int = 200) -> PlainTextResponse:
 async def api_parse_log(body: Dict[str, Any]) -> Dict[str, Any]:
     """로그 텍스트를 구조화된 엔트리로 파싱."""
     text = body.get("text", "")
+    if len(text) > MAX_PARSE_LOG_TEXT:
+        raise HTTPException(
+            status_code=413,
+            detail=f"로그가 너무 큽니다 (최대 {MAX_PARSE_LOG_TEXT // (1024 * 1024)}MB)",
+        )
     entries = parsers.parse_log_entries(text)
     groups = parsers.group_by_command(entries)
     return {
