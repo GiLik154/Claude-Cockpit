@@ -51,3 +51,6 @@ storage/recent_sessions.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Local docs (not shipped to repo)
+RELEASING.md
