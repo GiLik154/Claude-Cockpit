@@ -1,5 +1,11 @@
 # Claude Cockpit
 
+[![CI](https://github.com/GiLik154/Claude-Cockpit/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/GiLik154/Claude-Cockpit/actions/workflows/ci.yml)
+[![Latest tag](https://img.shields.io/github/v/tag/GiLik154/Claude-Cockpit?label=latest&sort=semver)](https://github.com/GiLik154/Claude-Cockpit/tags)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
+[![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux-lightgrey.svg)](#알려진-제한사항)
+
 브라우저에서 여러 [Claude CLI](https://docs.anthropic.com/en/docs/claude-code) 세션을 동시에 관리하는 웹 대시보드.
 
 ![메인 대시보드](docs/01-main-dashboard.png)
@@ -156,6 +162,16 @@ Agent Teams 프리셋으로 세션을 생성하면 Claude가 여러 에이전트
 - **macOS / Linux 전용** — tmux + PTY 기반이라 Windows에서는 WSL 필요
 - **Claude CLI 인증** — 실행 전 `claude` 명령으로 인증이 완료되어 있어야 합니다
 - **Agent Teams** — `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` 환경변수가 필요하며, CLI 버전에 따라 지원 여부가 다릅니다
+
+## 브랜치 & 릴리즈
+
+브랜치 모델, SemVer, 릴리즈/Hotfix 절차, 커밋 컨벤션은 [docs/BRANCHING.md](docs/BRANCHING.md)를 참조하세요.
+
+요약:
+
+- `main` — 트렁크
+- `release/vX.Y.Z` — 정식 릴리즈 스냅샷 + 해당 버전 hotfix 라인
+- 태그 `vX.Y.Z` — 같은 이름의 release 브랜치 HEAD에 부여
 
 ## 라이선스
 
