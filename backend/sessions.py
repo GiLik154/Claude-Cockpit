@@ -18,6 +18,18 @@ from backend.constants import (
 router = APIRouter()
 
 
+def _ensure_pane_in_session(tmux_name: str, pane_id: str) -> None:
+    """pane_id가 tmux_name 세션에 속하는지 검증. 아니면 404."""
+    import backend.app as _app
+
+    out, rc = _app.tmux_run("list-panes", "-t", tmux_name, "-F", "#{pane_id}")
+    if rc != 0:
+        raise HTTPException(status_code=404, detail="세션을 찾을 수 없습니다")
+    pane_ids = {line.strip() for line in out.split("\n") if line.strip()}
+    if pane_id not in pane_ids:
+        raise HTTPException(status_code=403, detail="해당 세션의 pane이 아닙니다")
+
+
 @router.get("/api/sessions")
 async def api_list_sessions() -> List[Dict[str, Any]]:
     """전체 세션 목록과 alive 상태를 반환."""
@@ -77,6 +89,13 @@ async def api_create_session(body: Dict[str, Any]) -> Dict[str, Any]:
             raise HTTPException(
                 status_code=400,
                 detail=f"작업 디렉터리가 존재하지 않습니다: {cwd}",
+            )
+
+        home_real = os.path.realpath(os.path.expanduser("~"))
+        if os.path.commonpath([real_cwd, home_real]) != home_real:
+            raise HTTPException(
+                status_code=400,
+                detail="작업 디렉터리는 홈 디렉터리 하위여야 합니다",
             )
 
         cmd = _app._resolve_preset_cmd(preset, model)
@@ -172,6 +191,8 @@ async def api_capture_session(
     tmux_name = f"{PREFIX}{session_id}"
     if not _app.session_exists(tmux_name):
         return PlainTextResponse("")
+    if pane_id:
+        _ensure_pane_in_session(tmux_name, pane_id)
     target = pane_id if pane_id else tmux_name
     content = await _app._capture_tmux_history_async(target, lines=lines, escape_sequences=True)
     return PlainTextResponse(content)
@@ -197,6 +218,8 @@ async def api_send_keys(session_id: str, body: Dict[str, Any]) -> Dict[str, bool
     tmux_name = f"{PREFIX}{session_id}"
     if not _app.session_exists(tmux_name):
         raise HTTPException(status_code=404, detail="세션을 찾을 수 없습니다")
+
+    _ensure_pane_in_session(tmux_name, pane_id)
 
     _app.tmux_run("send-keys", "-t", pane_id, "-l", text)
     _app.tmux_run("send-keys", "-t", pane_id, "Enter")
@@ -249,6 +272,8 @@ async def api_agent_status(session_id: str, pane_id: Optional[str] = None) -> Di
     tmux_name = f"{PREFIX}{session_id}"
     if not _app.session_exists(tmux_name):
         return {"status": "idle", "message": "세션 없음"}
+    if pane_id:
+        _ensure_pane_in_session(tmux_name, pane_id)
     target = pane_id if pane_id else tmux_name
     content = await _app._capture_tmux_history_async(target, lines=30, escape_sequences=True)
     return parsers.extract_agent_status(content)
