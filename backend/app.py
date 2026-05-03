@@ -1,6 +1,7 @@
 """FastAPI 백엔드 진입점. 헬퍼 함수들을 정의하고 서브모듈 라우터를 포함한다."""
 
 import asyncio
+import hmac
 import json
 import logging
 import os
@@ -12,7 +13,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Tuple
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from backend.constants import (
@@ -27,6 +28,7 @@ from backend.constants import (
     PRESET_COMMANDS,
     RECENT_SESSIONS_FILE,
     SENSITIVE_ENV_PREFIXES,
+    SENSITIVE_ENV_SUBSTRINGS,
     SESSIONS_FILE,
     STORAGE_DIR,
     TMUX,
@@ -84,8 +86,15 @@ def _validate_pane_id(pane_id: str) -> None:
 
 def _clean_env() -> Dict[str, str]:
     """민감한 환경변수를 제거한 사본을 반환."""
-    return {k: v for k, v in os.environ.items()
-            if not k.startswith(SENSITIVE_ENV_PREFIXES)}
+    cleaned: Dict[str, str] = {}
+    for k, v in os.environ.items():
+        if k.startswith(SENSITIVE_ENV_PREFIXES):
+            continue
+        upper = k.upper()
+        if any(s in upper for s in SENSITIVE_ENV_SUBSTRINGS):
+            continue
+        cleaned[k] = v
+    return cleaned
 
 
 # --- 로그 ---
@@ -102,10 +111,16 @@ def append_log(session_id: str, direction: str, text: str) -> None:
         return
     ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     prefix = ">>> " if direction == "in" else ""
+    new_file = not os.path.exists(path)
     with open(path, "a", encoding="utf-8") as f:
         f.write(f"[{ts}] {prefix}{clean}")
         if not clean.endswith('\n'):
             f.write('\n')
+    if new_file:
+        try:
+            os.chmod(path, 0o600)
+        except OSError:
+            pass
 
 
 # --- tmux 헬퍼 ---
@@ -434,6 +449,34 @@ app.include_router(_log_router)
 app.include_router(_usage_router)
 app.include_router(_groups_router)
 app.include_router(_ws_router)
+
+# 토큰 인증 미들웨어 — CLAUDE_PROXY_TOKEN 설정 시 /api/* 검증
+from starlette.middleware.base import BaseHTTPMiddleware  # noqa: E402
+from starlette.requests import Request  # noqa: E402
+
+
+class _TokenAuthMiddleware(BaseHTTPMiddleware):
+    """CLAUDE_PROXY_TOKEN 환경변수가 설정된 경우 /api/* 요청을 토큰 검증."""
+
+    async def dispatch(self, request: Request, call_next):  # type: ignore[override]
+        token = os.environ.get("CLAUDE_PROXY_TOKEN", "").strip()
+        if not token:
+            return await call_next(request)
+        path = request.url.path
+        if not path.startswith("/api/"):
+            return await call_next(request)
+        provided = ""
+        auth_header = request.headers.get("authorization", "")
+        if auth_header.startswith("Bearer "):
+            provided = auth_header[len("Bearer "):].strip()
+        if not provided:
+            provided = request.query_params.get("token", "") or request.cookies.get("claude_proxy_token", "")
+        if not hmac.compare_digest(provided, token):
+            return JSONResponse({"detail": "unauthorized"}, status_code=401)
+        return await call_next(request)
+
+
+app.add_middleware(_TokenAuthMiddleware)
 
 # 정적 파일 & 인덱스 페이지
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="frontend")
