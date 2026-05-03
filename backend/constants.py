@@ -40,6 +40,7 @@ PTY_POLL_INTERVAL: float = 0.005
 
 # API 제한
 MAX_LOG_TAIL_LINES: int = 10000
+MAX_PARSE_LOG_TEXT: int = 5 * 1024 * 1024  # 5MB
 MAX_CAPTURE_LINES: int = 10000
 DEFAULT_SCROLLBACK_LINES: int = 500
 MAX_SESSIONS: int = 20
@@ -58,7 +59,14 @@ MAX_BROADCAST_TEXT_LENGTH: int = 10000
 
 SENSITIVE_ENV_PREFIXES: tuple = (
     "CLAUDECODE", "CLAUDE_CODE_ENTRY",
-    "ANTHROPIC_API_KEY", "OPENAI_API_KEY",
+    "ANTHROPIC_", "OPENAI_",
+    "GEMINI_", "GOOGLE_GENAI_", "MISTRAL_", "COHERE_", "GROQ_",
+    "PERPLEXITY_", "XAI_", "DEEPSEEK_", "REPLICATE_",
+)
+
+# 부분 문자열 기반 민감 환경변수 패턴 (대문자 변수명에 포함되면 차단)
+SENSITIVE_ENV_SUBSTRINGS: tuple = (
+    "_SECRET", "_PASSWORD", "PRIVATE_KEY", "_API_KEY",
 )
 
 # --dangerously-skip-permissions 포함 프리셋
