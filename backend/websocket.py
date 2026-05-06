@@ -19,7 +19,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 _ALLOWED_WS_HOSTS = frozenset({"localhost", "127.0.0.1", "[::1]", "::1"})
 
 
-def _is_allowed_origin(origin: str) -> bool:
+def _is_allowed_origin(origin: str, host: str) -> bool:
     if not origin:
         return False
     try:
@@ -28,7 +28,12 @@ def _is_allowed_origin(origin: str) -> bool:
         return False
     if parsed.scheme not in ("http", "https"):
         return False
-    return (parsed.hostname or "") in _ALLOWED_WS_HOSTS
+    origin_host = (parsed.hostname or "").lower()
+    if origin_host in _ALLOWED_WS_HOSTS:
+        return True
+    # Same-origin: Origin의 hostname == 요청 Host의 hostname
+    request_host = (host or "").rsplit(":", 1)[0].strip("[]").lower()
+    return bool(request_host) and origin_host == request_host
 
 from backend import parsers
 from backend.constants import (
@@ -77,7 +82,8 @@ async def ws_terminal(ws: WebSocket, session_id: str) -> None:
     import backend.app as _app
 
     origin = ws.headers.get("origin", "")
-    if not _is_allowed_origin(origin):
+    host = ws.headers.get("host", "")
+    if not _is_allowed_origin(origin, host):
         await ws.close(code=1008)
         return
 
